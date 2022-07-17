@@ -1,0 +1,18 @@
+-- Official docs: http://www.postgresql.org/docs/9.3/static/app-psql.html
+-- Unofficial docs: http://robots.thoughtbot.com/improving-the-command-line-postgres-experience
+
+\set HISTSIZE 2000
+\pset null '[null]'
+\set COMP_KEYWORD_CASE upper
+\x auto
+\timing
+
+\set PROMPT1 '%033[33m%]%n%033[0m%]@%033[32m%]%/%033[0m%]%033[1;31m%]%R%[%033[0m%]%# '
+\set PROMPT2 '%033[35m%]%n@%/%R%033[0m%]%# '
+
+\set version 'SELECT version();'
+
+\echo 'Welcome to PostgreSQL (.psqlrc)'
+\echo 'Type :version to see the PostgreSQL version. \n'
+
+-- \set PROMPT1 '%001%[%033[1;33;40m%]%002%n@%/%R%001%[%033[0m%]%002%# '

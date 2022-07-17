@@ -1,0 +1,62 @@
+# https://git-scm.com/docs/git-config
+[include]
+	path = ~/.iax/.gitcolors
+[user]
+	# Email -- env: GIT_AUTHOR_EMAIL, GIT_COMMITTER_EMAIL
+	name  = Isaias Piña
+	email = iax7@users.noreply.github.com
+	signingkey = DAC9D9C180E66CB4
+[core]
+	editor = vim
+	pager = diff-so-fancy | less --tabs=4 -RFX
+[interactive]
+	diffFilter = diff-so-fancy --patch
+
+## ALIAS -----------------------------------------------------------------------
+[alias]
+	############### Add
+	a    = add --all
+	############### Branch
+	branches = for-each-ref --sort=-committerdate --format=\"%(color:blue)%(authordate:relative)\t%(color:red)%(authorname)\t%(color:white)%(color:bold)%(refname:short)\" refs/remotes
+	b    = branch -vv
+	bb   = branch -vv -a
+	############### Commit
+	co   = commit
+	coa  = commit --amend
+	com  = "!f(){ git commit -m \"$*\"; };f"
+	############### Checkout
+	c    = checkout
+	c-   = checkout -
+	cb   = checkout -b
+	cm   = !git checkout master || git checkout main
+	############### Cherry-Pick
+	cp   = cherry-pick
+	############### Clean
+	clr  = clean -f -d
+	############### Diff
+	d    = diff
+	dt   = difftool
+	############### Format Patch
+	fp   = format-patch
+	############### Log
+	l    = !git --no-pager log --oneline --abbrev=6 -15
+	############### Merge
+	m    = merge
+	ma   = merge --abort
+	mc   = merge --continue
+	mt   = mergetool
+	############### Rebase
+	rb   = rebase
+	rba  = rebase --abort
+	rbc  = rebase --continue
+	############### Remote
+	r    = remote
+	ra   = remote add
+	rd   = remote remove
+	############### Reset
+	re   = reset
+	reh  = reset --hard
+	############### Status
+	s    = status -sb
+	############### TAGs
+	t    = tag -l -n1

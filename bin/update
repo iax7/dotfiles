@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+. .common
+
+_HELP0="Updates packages in current OS. Works in Ubuntu, Fedora and MacOS."
+
+kernel_name=$(uname -s | tr [A-Z] [a-z])
+
+generic_msg() {
+  #echo -e "${BBLK}——> $1$RST"
+  screen_cols=$(tput cols)
+  text="$1"
+  text_size=${#text}
+  size=$((screen_cols - text_size - 5))
+  separator_line=$(for i in $(seq $size); do echo -n '—'; done;)
+  echo -e "${BBLK}——— $text ${BBLK}$separator_line$RST"
+}
+update_msg() {
+  generic_msg "Updating [$1]..."
+}
+upgrade_msg() {
+  generic_msg 'Upgrading...'
+}
+
+case $kernel_name in
+  darwin)
+    update_msg brew
+    brew update
+    upgrade_msg
+    brew upgrade
+    generic_msg 'Cleaning up...'
+    brew cleanup
+    ;;
+  linux)
+    distro=$(awk -F= '/^ID=/{print $2}' /etc/os-release | tr [A-Z] [a-z] | egrep -o [a-z]+)
+    case $distro in
+      rhel|centos)
+        update_msg yum
+        sudo -E yum update -y
+        ;;
+      fedora)
+        update_msg dnf
+        sudo -E dnf update -y
+        ;;
+      ubuntu|raspbian|debian)
+        update_msg apt
+        sudo apt update
+        upgrade_msg
+        sudo apt upgrade -y
+        generic_msg 'Distro Upgrade...'
+        sudo apt dist-upgrade -y
+        generic_msg 'Auto remove...'
+        sudo apt autoremove -y
+        ;;
+      *)
+        echo -e "${RED}Err, not recognized $distro distribution."
+        ;;
+    esac
+    ;;
+  *)
+    echo -e "${RED}Err, not recognized $kernel_name kernel."
+    ;;
+esac

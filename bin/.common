@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+DEL="\r\e[K"
+RST="\e[0m"
+# standard colors
+BLK="\e[30m"
+RED="\e[31m"
+GRE="\e[32m"
+YEL="\e[33m"
+BLU="\e[34m"
+MAG="\e[35m"
+CYA="\e[36m"
+WHI="\e[37m"
+# high intensity colors
+BBLK="\e[90m"
+BRED="\e[91m"
+BGRE="\e[92m"
+BYEL="\e[93m"
+BBLU="\e[94m"
+BMAG="\e[95m"
+BCYA="\e[96m"
+BWHI="\e[97m"
+# Modifiers
+BLD="\e[1m" #BOLD
+DIM="\e[2m" #DIM
+UND="\e[4m" #UNDERLINE
+REV="\e[7m" #Reverse
+# Symbols
+SER="${RED}✗${RST}" #\u2717 ✗
+SOK="${GRE}✓${RST}" #\u2713 ✓
+
+msg() {
+  msg="$1"
+  echo -e "$msg${RST}"
+}
+warn() {
+  msg="$@"
+  echo -e "${BLD}${YEL}WARNING: ${RST}${YEL}$msg${RST}"
+}
+# Just idented message, intended to use after warn function
+warn2() {
+  msg="$@"
+  echo -e "         ${YEL}$msg${RST}"
+}
+err() {
+  msg="$1"
+  exit_code=${2:-0}
+  echo -e "${BLD}${RED}ERROR, ${RST}${RED}$msg${RST}" 1>&2
+  if [ $exit_code -ne 0 ]; then
+    exit $exit_code
+  fi
+}
+log() {
+  logger -p user.debug "$1"
+}
+
+get_distro() {
+  [[ -f /etc/os-release ]] && { echo $(grep ^ID= /etc/os-release | cut -d= -f2) && return $?; }
+}
+
+app_installed()
+{
+  local app="$1"
+  command -v $app >/dev/null 2>&1
+  [[ $? -ne 0 ]] && err "please install ${GRE}$app${RED} first." 1
+}
+
+file_exists()
+{
+  local file="$1"
+  if [ ! -e "$file" ]; then
+    err "file ${GRE}$file${RED} does not exist." 1
+  fi
+}
+
+# Usage:
+# _HELP0="Script's Description"
+# _HELP="parameter1 paremeter2"
+# has_params "$@"
+has_params()
+{
+  _help() {
+    if [ -n "$_HELP0" ]; then
+      echo -e "$_HELP0"
+      unset _HELP0
+    fi
+    if [ -n "$_HELP" ]; then
+      echo -e "Usage: ${GRE}$(basename $0)${RST} $_HELP"
+      unset _HELP
+    fi
+  }
+  #local params=("$1")
+  local count=${#@}
+  #local exit_code=${2:-0}
+  if [ $count -eq 0 ]; then
+    err 'no parameters given'
+    _help
+    exit 1
+  fi
+
+  #Has at least one parameter, is -h?
+  if [ "$1" == '-h' ]; then
+    _help
+    exit 0
+  fi
+}
+ask_go() {
+  echo -en "${BLD}Do you want to continue?${RST} [y/${BLD}N${RST}]: "
+  read -n 1 conti
+  echo
+  if [ "${conti,}" != 'y' ]; then
+    exit 0
+  fi
+}
+is_git() {
+  #[ -d .git ] || git rev-parse --git-dir > /dev/null 2>&1
+  git rev-parse --git-dir > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    err "Not a git repository"
+    exit 1
+  fi
+}
+convert_month() {
+    month="${1,,}"
+    case "$month" in
+        enero)      number='01';;
+        febrero)    number='02';;
+        marzo)      number='03';;
+        abril)      number='04';;
+        mayo)       number='05';;
+        junio)      number='06';;
+        julio)      number='07';;
+        agosto)     number='08';;
+        septiembre) number='09';;
+        octubre)    number='10';;
+        noviembre)  number='11';;
+        diciembre)  number='12';;
+    esac
+    echo $number
+}
+
+hr() {
+  local start=$'\e(0' end=$'\e(B' line='qqqqqqqqqqqqqqqq'
+  local cols=${COLUMNS:-$(tput cols)}
+  while ((${#line} < cols)); do line+="$line"; done
+  printf '%s%s%s\n' "$start" "${line:0:cols}" "$end"
+}
+
+# ┌─┬───┐
+# │ │   │
+# ├─┼───┤
+# └─┴───┘
+# ╔═╦═══╗
+# ║ ║   ║
+# ╠═╬═══╣
+# ╚═╩═══╝
+standout() {
+  m="$1"
+  t=$(printf '─%.0s' {1..${#1}})
+  echo "┌─┬─$t─┐"
+  echo "│ │ $m │"
+  echo "└─┴─$t─┘"
+}
+
+export DISTRO=$(get_distro)

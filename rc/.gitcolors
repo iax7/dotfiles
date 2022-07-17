@@ -1,0 +1,20 @@
+# vi:syntax=gitconfig
+# Format = foreground [background] [attr]
+# color = 0 - 256 (ANSI); #000000 (24bit Hex);
+#         normal, black, red, green, yellow, blue, magenta, cyan and white
+# attr = bold, dim, ul, blink, reverse, italic, and strike
+[color]
+	ui = true
+[color "diff-highlight"]
+	oldNormal = red bold
+	oldHighlight = red bold 52
+	newNormal = green bold
+	newHighlight = green bold 22
+[color "diff"]
+	meta = 11
+	frag = magenta bold
+	func = 146 bold
+	commit = yellow bold
+	old = red bold
+	new = green bold
+	whitespace = red reverse
