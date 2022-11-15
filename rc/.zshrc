@@ -1,17 +1,35 @@
 # skip when performing a headless operation (such as rsync).
 [[ -z ${PS1:-} ]] && return
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+if [[ ! -f $HOME/.zi/bin/zi.zsh ]]; then
+  print -P "%F{33}▓▒░ %F{160}Installing (%F{33}z-shell/zi%F{160})…%f"
+  command mkdir -p "$HOME/.zi" && command chmod go-rwX "$HOME/.zi"
+  command git clone -q --depth=1 --branch "main" https://github.com/z-shell/zi "$HOME/.zi/bin" && \
+    print -P "%F{33}▓▒░ %F{34}Installation successful.%f%b" || \
+    print -P "%F{160}▓▒░ The clone has failed.%f%b"
 fi
+source "$HOME/.zi/bin/zi.zsh"
+autoload -Uz _zi
+(( ${+_comps} )) && _comps[zi]=_zi
+# examples here -> https://wiki.zshell.dev/ecosystem/category/-annexes
+zicompinit # <- https://wiki.zshell.dev/docs/guides/commands
+# https://wiki.zshell.dev/ecosystem/category/-annexes
+zi light-mode for \
+  z-shell/z-a-meta-plugins \
+  @annexes @zsh-users+fast @romkatv
 
-# Path to your oh-my-zsh installation.
-export ZSH="$HOME/.oh-my-zsh"
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="powerlevel10k/powerlevel10k"
+zi ice wait'0' lucid
+zi load wfxr/forgit
+zi load z-shell/H-S-MW
+
+zi snippet OMZP::asdf
+zi snippet OMZP::sudo
+zi snippet OMZP::rake
+zi snippet OMZP::dirhistory
+zi snippet OMZP::colored-man-pages
+
+# examples here -> https://wiki.zshell.dev/community/gallery/collection
+zicompinit # <- https://wiki.zshell.dev/docs/guides/commands
 
 # --------------------------------- SETTINGS ----------------------------------
 # Lines configured by zsh-newuser-install
@@ -35,32 +53,7 @@ setopt hist_verify        # Don't execute immediately upon history expansion.
 setopt hist_reduce_blanks # Remove superfluous blanks before recording entry.
 # setopt SHARE_HISTORY
 
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load?
-# Standard plugins can be found in $ZSH/plugins/
-# Custom plugins may be added to $ZSH_CUSTOM/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(
-  git
-  sudo
-  jump
-  dirhistory
-  colored-man-pages
-  zsh-completions
-  zsh-autosuggestions
-  zsh-syntax-highlighting
-  history-substring-search
-)
-
-fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
-
-source $ZSH/oh-my-zsh.sh
-
 # User configuration
-
 export PATH="$HOME/bin:$PATH"
 # export MANPATH="/usr/local/man:$MANPATH"
 
@@ -114,8 +107,4 @@ export ACK_COLOR_LINENO='bold blue'        # bold yellow
 export EXA_COLORS='uu=38;5;47:gu=38;5;40:un=38;5;11:gn=38;5;184'
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 
-[[ -f ~/.forgit/forgit.plugin.zsh ]] && . ~/.forgit/forgit.plugin.zsh
 [[ -f /etc/grc.zsh ]] && . /etc/grc.zsh # Must be AFTER .bash_aliases
-
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rvm/bin"
