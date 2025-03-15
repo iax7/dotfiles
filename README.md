@@ -5,7 +5,7 @@
 ```bash
 git clone git@github.com:iax7/dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
-stow
+./init.sh
 ```
 
 (c) 2024
