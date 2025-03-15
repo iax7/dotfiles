@@ -7,13 +7,15 @@ source $ZAP_INI
 
 plug "zap-zsh/supercharge"
 plug "hlissner/zsh-autopair"
-plug "wintermi/zsh-starship"
 plug "zsh-users/zsh-autosuggestions"
 plug "wintermi/zsh-mise"
 plug "z-shell/F-Sy-H" # "zsh-users/zsh-syntax-highlighting"
 plug "zap-zsh/exa"
 plug "zap-zsh/fzf"
 plug "Aloxaf/fzf-tab"
+
+export POSH_THEME="$HOME/.config/p10k.yaml"
+plug "wintermi/zsh-oh-my-posh"
 
 autoload -Uz zmv # Habilita zmv para renombrar archivos
 
