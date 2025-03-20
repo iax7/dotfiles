@@ -1,0 +1,86 @@
+# https://git-scm.com/docs/git-config
+[user]
+  name  = Isaias Piña
+  email = iax7@users.noreply.github.com
+[core]
+  editor= vim
+  pager = diff-so-fancy | less --tabs=4 -RF
+  abbrev = 8
+[interactive]
+  diffFilter = diff-so-fancy --patch
+[color]
+  ui = true
+[color "status"]
+  untracked = cyan
+[color "diff-highlight"]
+  oldNormal = red bold
+  oldHighlight = red bold 52
+  newNormal = green bold
+  newHighlight = green bold 22
+[color "diff"]
+  meta = 11
+  frag = magenta bold
+  func = 146 bold
+  commit = yellow bold
+  old = red bold
+  new = green bold
+  whitespace = red reverse
+[format]
+  pretty = ext-oneline
+[pretty]
+  ext-oneline = format:%C(yellow)%h%Creset%x20%C(202)%<(10,trunc)%an%Creset%x20%s%C(auto)%d%x20%C(dim blue)%<(10)[%cr]%Creset
+## ALIAS -----------------------------------------------------------------------
+[alias]
+  ############### Add
+  a    = add --all
+  ############### Branch
+  b    = branch -vv
+  bb   = branch -vv -a
+  ############### Commit
+  co   = commit
+  coa  = commit --amend
+  com  = "!f(){ git commit -m \"$*\"; };f"
+  ############### Checkout
+  c    = checkout
+  c-   = checkout -
+  cb   = checkout -b
+  cm   = !git checkout master || git checkout main
+  ############### Cherry-Pick
+  cp   = cherry-pick
+  ############### Clean
+  clr  = clean -f -d
+  ############### Diff
+  d    = diff
+  dt   = difftool
+  ############### Format Patch
+  fp   = format-patch
+  ############### Log
+  l    = !git --no-pager log -15
+  ll   = log
+  ############### Merge
+  m    = merge
+  ma   = merge --abort
+  mc   = merge --continue
+  mt   = mergetool
+  ############### Rebase
+  rb   = rebase
+  rba  = rebase --abort
+  rbc  = rebase --continue
+  ############### Remote
+  r    = remote
+  rr   = !git remote -v | column -t | grep -e '^' -e origin --color
+  ra   = remote add
+  rd   = remote remove
+  ############### Reset
+  re   = reset
+  reh  = reset --hard
+  ############### Status
+  s    = status -sb
+  ############### Stash
+  sl   = stash list
+  sp   = stash pop
+  ############### TAGs
+  t    = tag -l -n1
+  ############### SPECIAL ------------------------------------------------------
+  bname   = rev-parse --abbrev-ref HEAD
+  root    = rev-parse --show-toplevel
