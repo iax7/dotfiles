@@ -4,6 +4,7 @@
   email = iax7@users.noreply.github.com
 [core]
   editor= vim
+  excludesfile = ~/.gitignore_global
   pager = diff-so-fancy | less --tabs=4 -RF
   abbrev = 8
 [interactive]
