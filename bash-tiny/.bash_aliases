@@ -1,0 +1,6 @@
+alias ..='cd ..'
+alias ...='cd ../../'
+alias l='ls -l'
+alias ll='ls -halF --color'
+PS1='\[\e[31m\]\u\[\e[m\]\[\e[33m\]@\[\e[m\]\[\e[32m\]\h\[\e[m\]:\[\e[36m\]\w\[\e[m\]\$ '
+PS2='\[\e[32m\]> \[\e[m\]'
