@@ -52,6 +52,7 @@ if cmd_exist bat; then
 fi
 # SystemCTL - https://systemd.io/ ---------------------------
 if cmd_exist systemctl; then
+  __smsg() { echo -e "\e[31m>>\e[0m Using systemctl as ${1}\e[0m"; }
   systemctl_aliases() {
     local _base_cmd="systemctl --user"
     [[ "$1" == "sudo" ]] && _base_cmd="sudo systemctl"
@@ -63,11 +64,11 @@ if cmd_exist systemctl; then
     alias  s0="${_base_cmd} disable"
     alias  se="${_base_cmd} show-environment"
     alias s\?="${_base_cmd} --no-pager status"
-    alias s_="echo 'daemon-reload...'; ${_base_cmd} daemon-reload"
+    alias s_="mini_t daemon-reload; ${_base_cmd} daemon-reload"
     alias st="${_base_cmd} list-timers --all"
   }
-  systemctl_aliases        # user
-  # systemctl_aliases sudo # system
+  systemctl_aliases  # load USER aliases as default
+  alias sw='f(){ [[ -z $1 ]] && { __smsg "\e[34mUser"; systemctl_aliases; } || { __smsg "\e[1;31mSystem"; systemctl_aliases sudo; }; };f'
 fi
 # Docker - https://www.docker.com/get-started
 if cmd_exist docker; then
