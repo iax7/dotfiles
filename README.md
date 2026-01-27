@@ -1,6 +1,6 @@
 # dotfiles
 
-![cover](assets/cover.png)
+![cover](docs/img/cover.png)
 
 ## Usage
 
@@ -10,4 +10,4 @@ cd ~/.dotfiles
 ./init.sh
 ```
 
-(c) 2024
+© Copyright 2024

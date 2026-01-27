@@ -28,14 +28,19 @@ alias free='free -h'
 alias cw='nc termbin.com 9999'
 alias pw='f(){ curl -s "https://termbin.com/$1"; };f'
 
-## Programs ===================================================================
+## Utils =====================================================================
 cmd_exist() { command -v "$1" &> /dev/null; }
 dir_exist() { [[ -d "$1" ]]; }
-# IP command
+mini_t() { echo -e " \e[31m--\e[0m \e[34m${@}\e[0m \e[31m--\e[0m"; }
+
+## Programs ===================================================================
+# LazyGit - https://github.com/jesseduffield/lazygit
+cmd_exist lazygit && alias lg=lazygit
+# IP command --------------------------
 cmd_exist ip && alias ip='ip --color=auto'
 # EZA - https://eza.rocks/ ------------
-if cmd_exist exa; then
-  alias ls='exa --group-directories-first --icons'
+if cmd_exist eza; then
+  alias ls='eza --group-directories-first --icons'
   alias l='ls -HlgF --git --color-scale'
   alias ll='l -aa'
   alias lt='f(){ ls --tree --git-ignore -L${1:-2}; };f'
@@ -52,7 +57,7 @@ if cmd_exist bat; then
 fi
 # SystemCTL - https://systemd.io/ ---------------------------
 if cmd_exist systemctl; then
-  __smsg() { echo -e "\e[31m>>\e[0m Using systemctl as ${1}\e[0m"; }
+  __msg() { echo -e "\e[31m>>\e[0m Using systemctl as ${1}\e[0m"; }
   systemctl_aliases() {
     local _base_cmd="systemctl --user"
     [[ "$1" == "sudo" ]] && _base_cmd="sudo systemctl"
@@ -68,7 +73,7 @@ if cmd_exist systemctl; then
     alias st="${_base_cmd} list-timers --all"
   }
   systemctl_aliases  # load USER aliases as default
-  alias sw='f(){ [[ -z $1 ]] && { __smsg "\e[34mUser"; systemctl_aliases; } || { __smsg "\e[1;31mSystem"; systemctl_aliases sudo; }; };f'
+  alias sw='f(){ [[ -z $1 ]] && { __msg "\e[34mUser"; systemctl_aliases; } || { __msg "\e[1;31mSystem"; systemctl_aliases sudo; }; };f'
 fi
 # Docker - https://www.docker.com/get-started
 if cmd_exist docker; then
@@ -77,10 +82,17 @@ if cmd_exist docker; then
   alias di='d image ls'
   alias dp='d system prune --volumes'
 fi
+# mise - https://github.com/jdx/mise --
+if cmd_exist mise; then
+  alias ml='mise list'
+  alias mD='mise doctor'
+  alias mU='mini_t self-update && mise self-update --yes --cd ~ && mini_t update && mise up --cd ~'
+  alias mu='mise upgrade --bump -i'
+fi
 
 ## Functions ==================================================================
 update() {
+  # Debian/Ubuntu based systems
   cmd_exist nala && sudo nala upgrade -y && return 0
-
   cmd_exist apt && sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y
 }

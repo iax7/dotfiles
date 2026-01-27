@@ -5,10 +5,15 @@
 [core]
   editor= vim
   excludesfile = ~/.gitignore_global
-  pager = diff-so-fancy | less --tabs=4 -RF
+  pager = delta
   abbrev = 8
 [interactive]
-  diffFilter = diff-so-fancy --patch
+  diffFilter = delta --color-only
+[delta]
+  navigate = true  # use n and N to move between diff sections
+  dark = true      # or light = true, or omit for auto-detection
+[merge]
+  conflictStyle = zdiff3
 [color]
   ui = true
 [color "status"]
@@ -85,3 +90,4 @@
   ############### SPECIAL ------------------------------------------------------
   bname   = rev-parse --abbrev-ref HEAD
   root    = rev-parse --show-toplevel
+  rootbr  = !git remote show origin 2>/dev/null | sed -n 's/.*HEAD branch: //p'
