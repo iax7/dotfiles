@@ -1,0 +1,30 @@
+#!/usr/bin/env zsh
+# [ created by Pat Regan ------------------------
+# https://blog.patshead.com/2012/11/automatically-expaning-zsh-global-aliases---simplified.html
+_globalias() {
+   if [[ $LBUFFER =~ ' [A-Z0-9]+$' ]]; then
+     zle _expand_alias
+     zle expand-word
+   fi
+   zle self-insert
+}
+zle -N _globalias
+bindkey " " _globalias
+bindkey "^ " magic-space           # control-space to bypass completion
+bindkey -M isearch " " magic-space # normal space during searches
+# ------------------------ ]
+
+alias -g -- --help='--help 2>&1 | bat --language=help --style=plain'
+
+alias -g   C='| pbcopy'         # copy
+alias -g   G='| grep -i'
+alias -g  LC='| wc -l'          # Line Count
+
+alias -g  NE='2> /dev/null'
+alias -g  ND='> /dev/null'
+alias -g NIL='> /dev/null 2>&1'
+
+alias -g   P='$(pbpaste)'
+alias -g   V='--version'
+alias -g  \?='-h 2>&1 | bat -plhelp'
+alias -g \?\?='--help'

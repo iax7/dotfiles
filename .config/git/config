@@ -1,0 +1,117 @@
+# vim: set ft=gitconfig ts=2 sw=2:
+# https://git-scm.com/docs/git-config
+
+########################################
+# Includes (Shared or Conditional)
+########################################
+[include]
+  path = aliases
+
+########################################
+# User Identity
+########################################
+[user]
+  name = Isaias Piña
+  email = iax7@users.noreply.github.com
+  signingkey = DAC9D9C180E66CB4
+
+########################################
+# Core Behavior
+########################################
+[core]
+  editor = nvim
+  autocrlf = input                  # For Windows use 'true'
+  excludesfile = ~/.config/git/ignore
+  pager = delta
+  abbrev = 8
+  precomposeUnicode = true         # Handles Unicode filenames correctly (useful on macOS)
+
+[init]
+  defaultBranch = master
+
+########################################
+# Commit and Tag
+########################################
+[commit]
+  gpgSign = true
+
+[tag]
+  gpgSign = true
+  sort = version:refname           # Version-aware tag sorting. 1.10.2 is AFTER 1.2.0.
+
+########################################
+# Push & Pull
+########################################
+[push]
+  default = simple
+  followTags = true
+  autoSetupRemote = true
+
+[pull]
+  rebase = true
+
+[fetch]
+  prune = true                     # Automatically delete removed remote branches
+
+########################################
+# Rebase
+########################################
+[rebase]
+  abbreviateCommands = true        # Use 'p' instead of 'pick'
+  stat = true
+  autosquash = true
+  autostash = true
+
+########################################
+# Diff & Merge
+########################################
+[diff]
+  mnemonicPrefix = true            # Use c/(i)ndex/(w)orking instead of a/b
+  renames = true
+  colorMoved = default
+
+[interactive]
+  diffFilter = delta --color-only --features=interactive
+
+[merge]
+  stat = true
+  conflictstyle = diff3            # Show common ancestor in conflict markers
+
+[mergetool]
+  keepBackup = false
+  keepTemporaries = false
+  writeToTemp = true
+  prompt = false
+
+########################################
+# Remote Behavior
+########################################
+
+# Allows shorthand gh:some/repo to be interpreted as git@github.com:some/repo
+[url "git@github.com:"]
+  # useful for Homebrew when using private repos
+  insteadOf = https://github.com/
+
+########################################
+# Conflict Resolution
+########################################
+[rerere]
+  enabled = 1                      # reuse recorded conflict resolutions
+
+########################################
+# UI/UX Enhancements
+########################################
+[status]
+  branch = true                    # Show tracking branch and ahead/behind info
+  showUntrackedFiles = all
+
+[log]
+  decorate = short
+  abbrevCommit = true
+
+[branch]
+  sort = -committerdate            # sort branches by most recent commit date first
+
+[blame]
+  coloring = highlightRecent       # use gradient coloring to highlight recent commits
+  date = relative                  # show relative dates like "2 weeks ago"

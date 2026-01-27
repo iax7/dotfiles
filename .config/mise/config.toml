@@ -1,0 +1,24 @@
+#schema = "https://mise.jdx.dev/schema/mise.json"
+
+# you can set these with `mise use -g`
+[tools]
+node = "lts"
+python = "latest"
+ruby = "latest"
+usage = "latest"
+
+[settings]
+trusted_config_paths = ['~/dev', '~/projects']
+yes = false # set to true to automatically answer yes to all prompts
+idiomatic_version_file_enable_tools = ["ruby"]
+
+[tasks.npm]
+description = "Install npm dependencies"
+run = "npm install -g npm yarn npm-check-updates is-my-node-vulnerable npkill retire"
+
+[tasks.gems]
+description = "Install default Ruby gems"
+run = """
+  gem update --system
+  gem install bundler rails rubocop
+"""

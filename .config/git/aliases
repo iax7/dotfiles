@@ -1,0 +1,77 @@
+[alias]
+  ### 📝 Cambios
+  a    = add --all
+  ap   = add --patch
+  d    = diff
+  dc   = diff --cached
+  s    = status -sb
+
+  ### 🌱 Branching
+  b    = branch -vv
+  bb   = branch -vv -a
+  buu  = branch --unset-upstream
+  c    = checkout
+  cm   = !git checkout $(git rootbr)   # checkout master or main
+  sw   = "!f(){ git switch $1 || git switch -c $1; };f"
+
+  ### Remotes
+  rr   = !git remote -v | column -t | highlight -c origin:200 -c upstream:green -c git@github.com:blue
+
+  ### 💾 Commit
+  com  = "!f(){ git commit -m \"$*\"; };f"
+  coa  = commit --amend --all
+
+  ### 📥📤 Pull & Push
+  fa   = fetch --all --prune
+  po   = !git pull origin $(git bname) --rebase --autostash
+  pf   = push --force-with-lease
+  pushu= push -u origin HEAD
+
+  ### 🧹 Limpieza
+  clr   = clean -fd
+  reh   = reset --hard
+  prune = !git gc --prune=now --aggressive && echo '  -- stats --' && git count-objects -v
+
+  ### 📈 Log
+  # git log -1 --pretty=format:"%Credred %Cgreengreen %C(Yellow)yellow %Cblueblue %C(magenta)magenta %C(cyan)cyan %C(white)white %C(normal)normal %C(black)black%Creset"
+  # git log --graph --oneline --decorate --abbrev=6
+  # stats: --stat --numstat --shortstat [--stat-graph-width=30]
+  l    = !git --no-pager log --graph -15 # --pretty=iax-oneli
+  lf   = log --pretty=fuller --decorate
+  lff  = log --pretty=iaxfull --decorate
+  lme  = "!git log --author=\"$(git config user.name)\""
+
+  ### 🪛 Rebase
+  rbi  = rebase --interactive
+  rbc  = rebase --continue
+  rba  = rebase --abort
+
+  ### Tag
+  t    = tag -l -n1
+
+  ### Submodule
+  sm   = submodule
+  smup = submodule update --init --recursive
+
+  ### 🛠️ Utilidades
+  bname  = rev-parse --abbrev-ref HEAD
+  root   = rev-parse --show-toplevel
+  rootbr = !git symbolic-ref refs/remotes/origin/HEAD | cut -d'/' -f4
+  whoami = "!echo \"$(git config user.name) <$(git config user.email)>\""
+  assume = update-index --assume-unchanged --
+  assumed= !git ls-files -v | grep '^[a-z]'
+  patch  = !git --no-pager diff --no-color
+  squash = !git rebase -i --autosquash $(git rootbr)
+
+  ### 🌐 Navegación Web
+  o = !open "https://$(git remote get-url origin | tr : / | sed -E 's/(git@|.git)//g')/tree/$(git branch --show-current)"
+
+  ### 🔍 Exploración
+  branches = for-each-ref --sort=-committerdate --format="%(color:blue)%(authordate:relative)\t%(color:red)%(authorname)\t%(color:white)%(color:bold)%(refname:short)" refs/remotes
+
+  ### 📦 Stash
+  ss = "!f(){ [[ -n \"$*\" ]] && _msg=\"-m '$*'\" || _msg=''; git stash push $_msg; };f"
+  sp = stash pop
+  sd = stash drop
+  sl = stash list
+  sclear = "!git stash clear && echo 'Stash cleared ✅'"
