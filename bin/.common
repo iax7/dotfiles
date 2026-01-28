@@ -1,0 +1,422 @@
+#!/usr/bin/env bash
+# =============================================================================
+#              Common utility functions for shell scripts
+# =============================================================================
+# Description: Collection of helper functions for colors, formatting,
+#              validation, and common operations in bash scripts
+# Usage: source "$(dirname "$0")/.common" || exit 1
+# =============================================================================
+
+# Standard   | High intensity | Modifiers
+BLK="\e[30m"; BBLK="\e[90m";    RST="\e[0m" # RESET
+RED="\e[31m"; BRED="\e[91m";    BLD="\e[1m" # BOLD
+GRE="\e[32m"; BGRE="\e[92m";    DIM="\e[2m" # DIM
+YEL="\e[33m"; BYEL="\e[93m";    UND="\e[4m" # UNDERLINE
+BLU="\e[34m"; BBLU="\e[94m";    BLI="\e[5m" # Blink
+MAG="\e[35m"; BMAG="\e[95m";    REV="\e[7m" # Reverse
+CYA="\e[36m"; BCYA="\e[96m"
+WHI="\e[37m"; BWHI="\e[97m"
+# Status Icons with Colors
+ST_ICO_OK="[${GRE}✓${RST}]"       # OK/Success
+ST_ICO_IN="[${BLU}${RST}]"       # Info
+ST_ICO_SK="[${CYA}󰒭${RST}]"       # Skip
+ST_ICO_WA="[${YEL}⚠${RST}]"       # Warning
+ST_ICO_ER="[${RED}✗${RST}]"       # Error
+ST_ICO_FA="[${BLD}${RED}󰚌${RST}]" # Fatal Error
+ST_ICO_WT="[${MAG}➜${RST}]"       # Wait/Progress
+ST_ICO_MT="[${DIM}󰝟${RST}]"       # Muted
+ST_ICO_SV="[${GRE}${RST}]"       # Save
+ST_ICO_QS="[${BLU}?${RST}]"       # Question
+
+cmd_exist() { command -v "$1" &> /dev/null; }
+# 256-color support functions
+# Usage: echo -e "$(color_fg 240)dark grey text${RST}"
+#        echo -e "$(color_bg 196)red background${RST}"
+#        echo -e "$(color_ansi 15 240)white on dark grey${RST}"
+color_fg() { printf '\033[38;5;%sm' "$1"; }
+color_bg() { printf '\033[48;5;%sm' "$1"; }
+# Combined foreground and background color setter
+# Usage: color_ansi <fg> [bg]
+color_ansi() {
+  [[ -n "$1" ]] && color_fg "$1" # foreground
+  [[ -n "$2" ]] && color_bg "$2" # background
+}
+
+######################################
+# Line Helpers
+######################################
+# Add spaces at the beginning of each line
+indent() {
+  local num="${1:-2}" # 2 spaces
+  local spaces=$(printf "%${num}s")
+  sed "s/^/${spaces}/"
+}
+# Remove non visible characters (like colors) to have real count
+visible_char_size() {
+  local clean_string="$(echo -e "$*" | perl -pe 's/\e\[[\d;]*[A-Za-z]//g')"
+  echo -n "${#clean_string}"
+}
+term_width_line() {
+  local char="$1"
+  local adjust_num="$2"
+  shift 2
+  local msg="$*"
+  local msg_length=$(visible_char_size $msg)
+  local side_line_size=$(($(tput cols) - msg_length - adjust_num))
+  (( side_line_size < 0 )) && side_line_size=0
+  echo -n "$(printf "$char%.0s" $(seq 1 $side_line_size))"
+}
+# Creates a line with a given character with the given msg length
+# msg_width_line ═ "hola"
+# ════
+msg_width_line() {
+  local char="$1" && shift
+  local msg="$*"
+  local msg_length=$(visible_char_size $msg)
+  echo -n "$(printf "$char%.0s" $(seq 1 $msg_length))"
+}
+
+# line_fill ─ 40 "hola"                    v- max_width (40 here)
+# line_fill ─ 40 "hola mundo"         v- [xx] not actually printed
+# ────────────────────────────────────[hola]
+# ──────────────────────────────[hola mundo]
+line_fill() {
+  local char="$1"
+  local max_width="$2"
+  shift 2
+  local msg="$*"
+  local msg_length=$(visible_char_size $msg)
+  local fill_len=$(( max_width - msg_length ))
+  (( fill_len < 0 )) && fill_len=0
+
+  echo -n "$(printf "$char%.0s" $(seq 1 $fill_len))"
+}
+
+# print_line 134
+# ─────────────────────────────────────────────────────────(screen width)
+print_line() {
+  local color=${1:-15} # 256 colors
+  local cols=${COLUMNS:-$(tput cols)}
+  local line=$(printf '─%.0s' $(seq 1 $cols))
+
+  printf "\033[38;5;%dm%s\033[0m\n" "$color" "$line"
+}
+
+######################################
+# Titles
+######################################
+
+# ┌─┬────────────┐
+# │ │ My Section ├───────────────────────────────────────────
+# └─┴────────────┘
+section() {
+  local dec_col=$BLU
+  local txt_col=$WHI
+  local msg="$@"
+
+  local side_line=$(term_width_line ─ 6 "$msg")
+  local top_bot=$(msg_width_line ─ "$msg")
+
+  echo -e "$dec_col┌─┬─$top_bot─┐$RST"
+  echo -e "$dec_col│ │ $txt_col$msg$dec_col ├$side_line$RST"
+  echo -e "$dec_col└─┴─$top_bot─┘$RST"
+}
+
+# [Step] ──────────────────────────────────────────────────
+step() {
+  local dec_col="$BLD$RED"
+  local txt_col="$BLD$BLU"
+  local msg="$@"
+
+  local side_line=$(term_width_line ─ 3 "$msg")
+  echo -e "[$txt_col$msg$RST] $dec_col$side_line$RST"
+}
+# ─── $1 ─────────────────────────────────────────────────
+msg_title() {
+  local dec_col="$BLD$RED"
+  local msg="$@"
+
+  local side_line=$(term_width_line ─ 5 "$msg")
+  echo -e "\e[1;31m───$RST $msg $dec_col$side_line$RST" # MacOS shows strange chars with dec_col: ��── Updating [Mise]
+}
+# Other Symbols: •, ↳, >>, ➜
+# sub_title "self-update"                   v- 40
+# → self-update ─────────────────────────────
+# → update ──────────────────────────────────
+sub_title() {
+  local dec_col="$BLD$CYA"
+  local msg="$@"
+  local line=$(line_fill ─ 40 "$msg")
+
+  echo -e "${dec_col}→ $msg${RST} $(color_fg 52)$line$RST"
+}
+# -- title --
+mini_title() {
+  echo -e "$RED--$RST $BLU${@}$RST $RED--$RST"
+}
+# Toilet
+# ░▀█▀░▀█▀░▀█▀░█░░░█▀▀
+# ░░█░░░█░░░█░░█░░░█▀▀
+# ░░▀░░▀▀▀░░▀░░▀▀▀░▀▀▀
+# Figlet (fallback)
+#  _   _ _   _
+# | |_(_) |_| | ___
+# | __| | __| |/ _ \
+# | |_| | |_| |  __/
+#  \__|_|\__|_|\___|
+title() {
+  cmd_exist toilet && toilet -f pagga "$@" | command lolcat -t || \
+    figlet "$@"
+}
+# 88888888ba  88
+# 88      "8b ""
+# 88      ,8P
+# 88aaaaaa8P' 88  ,adPPYb,d8
+# 88""""""8b, 88 a8"    `Y88
+# 88      `8b 88 8b       88
+# 88      a8P 88 "8a,   ,d88
+# 88888888P"  88  `"YbbdP"Y8
+#                 aa,    ,88
+#                  "Y8bbdP"
+title_lg() {
+  # Fonts Directory: figlet -I 2
+  # http://www.figlet.org/examples.html
+  local font=univers
+  [[ ! -s "$(figlet -I 2)/$font.flf" ]] && sudo curl -sO "http://www.figlet.org/fonts/$font.flf"
+  figlet -f "$font" "$@" | command lolcat -t
+}
+# ⢀⣀ ⣀⣀  ⢀⣀ ⡇ ⡇
+# ⠭⠕ ⠇⠇⠇ ⠣⠼ ⠣ ⠣
+title_sm() {
+  toilet -f smbraille "$@" | command lolcat -t
+}
+
+######################################
+# Text Messages
+######################################
+msg()   { echo -e "$*${RST}"; }
+err()   { echo -e "${BLD}${RED}ERROR,${RST}${RED} $*${RST}" >&2; }
+warn()  { echo -e "${BLD}${YEL}WARNING:${RST}${YEL} $*${RST}"; }
+warn2() { echo -e "${YEL}$*${RST}" | indent 9; } # Just idented message, intended to use after warn function
+
+# Status message functions with icons and colors
+# Usage: msg_ok "Operation completed" || msg_error "Failed to connect" | indent
+msg_ok()    { echo -e "$ST_ICO_OK ${GRE}$*${RST}"; }       # [✓] Success message
+msg_skip()  { echo -e "$ST_ICO_SK ${CYA}$*${RST}"; }       # [󰒭] Skipped message
+msg_info()  { echo -e "$ST_ICO_IN ${BLU}$*${RST}"; }       # [] Info message
+msg_warn()  { echo -e "$ST_ICO_WA ${YEL}$*${RST}"; }       # [⚠] Warning message
+msg_error() { echo -e "$ST_ICO_ER ${RED}$*${RST}"; }       # [✗] Error message
+msg_fatal() { echo -e "$ST_ICO_FA ${BLD}${RED}$*${RST}"; } # [󰚌] Fatal error message
+msg_wait()  { echo -e "$ST_ICO_WT ${MAG}$*${RST}"; }       # [➜] Wait/progress message
+msg_muted() { echo -e "$ST_ICO_MT ${BBLK}$*${RST}"; }      # [󰝟] Muted/dim message
+msg_save()  { echo -e "$ST_ICO_SV ${GRE}$*${RST}"; }       # [] Save message
+msg_ques()  { echo -e "$ST_ICO_QS ${CYA}$*${RST}"; }       # [?] Question message
+
+# Universal error handler with configurable action (exit or return)
+# Usage: err_do "message" [action] [exit_code]
+# Parameters:
+#   $1 msg        - Error message to display (required)
+#   $2 action     - Action to take: "exit" or "return" (default: "exit")
+#   $3 exit_code  - Exit/return code (default: 1)
+# Examples:
+#   err_do "File not found"                    # Exit with code 1
+#   err_do "Invalid input" exit 2              # Exit with code 2
+#   err_do "Function failed" return 3          # Return from function with code 3
+#   err_do "Warning only" exit 0               # Show error but don't exit
+#   err_do "Database error" return             # Return with code 1
+# Notes:
+#   - Error message is sent to stderr via err() function
+#   - Code 0 means no exit/return (just show error)
+#   - Use "return" in functions, "exit" in main script
+err_do() {
+  local msg="$1"
+  local action=${2:-exit}  # "exit" (default) or "return"
+  local exit_code=${3:-1}
+  err "$msg"
+  [[ $exit_code -ne 0 ]] && $action $exit_code
+}
+err_exit()   { err_do "$1" exit "${2:-}"; }
+err_return() { err_do "$1" return "${2:-}"; }
+
+log() {
+  local tag="$(basename "$0")"
+  logger -t "$tag" -p user.debug "$*"
+}
+
+# Get the Linux distribution ID in lowercase
+# Returns the distribution identifier (e.g., ubuntu, debian, fedora, arch)
+# Returns 1 if /etc/os-release doesn't exist (non-Linux or very old system)
+# Usage:
+#   distro=$(get_distro)
+#   [[ "$distro" == "ubuntu" ]] && echo "Running on Ubuntu"
+# Examples:
+#   Ubuntu    -> ubuntu
+#   Fedora    -> fedora
+#   Arch      -> arch
+#   Debian    -> debian
+get_distro() {
+  [[ -f /etc/os-release ]] || return 1
+  source /etc/os-release
+  echo "${ID,,}"  # Bash parameter expansion for lowercase
+}
+
+######################################
+# Validations
+######################################
+is_git() { git rev-parse --git-dir > /dev/null 2>&1 && return 0 || return 1; }
+only_git() { is_git || { msg_skip "Not a 󰊢 git repository" | indent ${1:-0} && exit ${2:-0}; }; } # only_git [indent] [exit_code]
+
+in_linux() { [[ "$OSTYPE" == linux* ]]; }
+in_mac()   { [[ "$OSTYPE" == darwin* ]]; }
+in_gnome() { [[ -n "$DESKTOP_SESSION" && "$XDG_CURRENT_DESKTOP" == "GNOME" ]] || return 1; }
+
+# these will exit the script
+only_linux() {
+  in_linux || { err_exit "not in a linux-gnu OS"; }
+}
+only_mac() {
+  in_mac   || { err_exit "not in a MacOS"; }
+}
+
+# Validates that a required command/application is available in PATH
+# Exits with error message if command is not found
+# Parameters:
+#   $1 app         - Command name to check (required)
+#   $2 custom_msg  - Optional custom message appended to error (optional)
+# Usage:
+#   require_cmd "git"
+#   require_cmd "docker" "Install it from https://docker.com"
+#   require_cmd "jq" "Run: brew install jq"
+require_cmd() {
+  local app="$1"
+  [[ -n "${2:-}" ]] && local custom_msg=" $2"
+  if ! cmd_exist "$app"; then
+    err_exit "${YEL}$app${RED} is not installed.${custom_msg:-}"
+  fi
+}
+
+# Validate script parameters and display help if needed
+# Requires global variables: _HELP0 (description) and _HELP (usage syntax)
+# Exits with error if no parameters given, displays help on -h flag
+# Parameters:
+#   $@ - All script parameters to validate
+# Usage:
+#   _HELP0="Script to process files"
+#   _HELP="<file> [options]"
+#   has_params "$@"
+has_params() {
+  _help() {
+    [[ -n "$_HELP0" ]] && echo -e "$_HELP0" && unset _HELP0
+    [[ -n "$_HELP" ]] && echo -e "Usage: ${GRE}$(basename "$0")${RST} $_HELP" && unset _HELP
+  }
+  # Check if no parameters provided
+  [[ $# -eq 0 ]] && { err 'no parameters given'; _help; exit 1; }
+
+  # Display help if -h flag is provided
+  [[ "$1" == "-h" || "$1" == "--help" ]] && { _help; exit 0; }
+}
+
+# Prompt user for yes/no confirmation
+# Accepts y/yes/s/si (English and Spanish), defaults to No
+# Returns 0 for yes, 1 for no (doesn't exit, just returns)
+# Parameters:
+#   $@ - Optional message to display before prompt
+# Usage:
+#   confirm "Delete all files?" && rm -rf *
+#   confirm && echo "User confirmed"
+#   if confirm "Proceed with installation?"; then
+#     install_package
+#   else
+#     echo "Installation cancelled"
+#   fi
+# Examples:
+#   confirm "Delete database?"
+#   # Output: [] Delete database?
+#   #         Do you want to continue? (y/s/N): y
+confirm() {
+  # Show info message if provided
+  [[ -n "$*" ]] && msg_ques "$*"
+
+  # Show prompt (y/s for yes in English/Spanish, N is default)
+  echo -ne "Do you want to continue? (${GRE}y${RST}/${GRE}s${RST}/${BLD}${RED}N${RST}): "
+  read -r response
+
+  case "$response" in
+    [sS]|[yY]|[yY][eE][sS]|[sS][iI]) return 0 ;;
+    *) msg "Cancelled."; return 1 ;;
+  esac
+}
+
+# Borrowed from https://github.com/fearside/ProgressBar/blob/master/progressbar.sh
+# progress_bar current total [width]
+progress_bar() {
+  local current=${1:-0}
+  local total=${2:-100}
+  local width=${3:-40}
+  [[ $current -gt $total ]] && current=$total # overflow validation
+  # Process data
+  local percentage=$(( (current * 100) / total ))
+  local filled=$(( (percentage * width) / 100 ))
+  local empty=$(( width - filled ))
+  # Build progressbar string lengths
+  local done=$(printf "%${filled}s")
+  local left=$(printf "%${empty}s")
+
+  # 1.2 Build progressbar strings and print the ProgressBar line
+  # 1.2.1 Output example:
+  # 1.2.1.1 Progress: [########################################] 100%
+  printf "\rProgress: [$BLU${done// /■}$BBLK${left// /─}$RST] $GRE${percentage}%%$RST"
+}
+# Convert EPOCH timestamp to human-readable relative time
+# Displays time difference as "X seconds/minutes/hours/days ago"
+# Returns "in the future" if timestamp is ahead of current time
+# Parameters:
+#   $1 - EPOCH timestamp (seconds since 1970-01-01)
+# Examples:
+#   date_relative 1704123456  # "30 seconds ago"
+#
+#   date_relative $(date -d '1 hour ago' +%s)  # "1 hour ago"
+#
+#   date_relative $(date -d '5 days ago' +%s)  # "5 days ago"
+date_relative() {
+  local mod_time=$1
+  local current_time=$(date +%s)
+  local diff=$((current_time - mod_time))
+
+  # Handle future timestamps
+  [[ $diff -lt 0 ]] && { msg "in the future"; return 0; }
+
+  local unit value
+  if [[ $diff -lt 60 ]]; then
+    value=$diff; unit="second"
+  elif [[ $diff -lt 3600 ]]; then
+    value=$((diff / 60)); unit="minute"
+  elif [[ $diff -lt 86400 ]]; then
+    value=$((diff / 3600)); unit="hour"
+  else
+    value=$((diff / 86400)); unit="day"
+  fi
+
+  # Pluralize if needed
+  [[ "$value" -eq 1 ]] && echo "$value $unit ago" || echo "$value ${unit}s ago"
+}
+
+# countdown 180
+# [] Waiting 3:00 minutes...
+# Remaining time: 03:00
+countdown() {
+  local seconds=$1
+  local minutes=$((seconds / 60))
+  local seconds_remaining=$((seconds % 60))
+  [[ $minutes -gt 0 ]] && msg_info "Waiting $(printf "%d:%02d" $minutes $seconds_remaining) minutes..." || msg_info "Waiting $seconds seconds..."
+  for ((i=seconds; i>=1; i--)); do
+    min=$((i/60))
+    sec=$((i%60))
+    printf "\rRemaining time: %02d:%02d" $min $sec
+    sleep 1
+  done
+  printf "\r\033[K"  # Clear the line
+}
+
+export DISTRO=$(get_distro)
+export DOTFILES_DIR="$HOME/.dotfiles"

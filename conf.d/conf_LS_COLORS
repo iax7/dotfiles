@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# =============================================================================
+# conf_lscolors: Customize LS_COLORS for better directory/file visibility
+# =============================================================================
+# Description: Modifies LS_COLORS plugin to use custom colors:
+#              - Directories: bright blue (33)
+#              - Executables: green (40)
+# Requires: LS_COLORS plugin installed via zap
+# URL: https://github.com/trapd00r/LS_COLORS
+# =============================================================================
+set -euo pipefail
+
+# LS_COLORS (Optional) https://raw.githubusercontent.com/trapd00r/LS_COLORS/master/lscolors.sh
+
+lsfile=$HOME/.local/share/zap/plugins/LS_COLORS/lscolors.sh
+if test -d $HOME/.local/share/zap/plugins/LS_COLORS; then
+  sed -i -s 's/di=38;5;30/di=38;5;33;1/g' $lsfile  # Directory (blue 33)
+  sed -i -s 's/ex=38;5;208;1/ex=38;5;40/g' $lsfile # Executable (green 40)
+fi

@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
-./init.sh tiny-rc
+echo "🔗 Creating symlinks..."
+stow -v tiny-rc

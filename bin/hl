@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+# =============================================================================
+# hl: Simple colorized text highlighter with auto-color assignment
+# =============================================================================
+# Description: Wrapper for highlight that automatically assigns colors to words.
+#              Perfect for quick interactive use - just pass words to highlight.
+# Usage: hl [word1] [word2] [word3] ...
+# Examples:
+#   tail -f app.log | hl ERROR WARN INFO
+#   ps aux | hl python nginx mysql
+# Note: For advanced features (regex, custom colors), use 'highlight' directly
+# =============================================================================
+# hl (porcelain)             tail -f app.log | hl ERROR WARN INFO DEBUG
+#  └─> highlight (plumbing)  tail -f app.log | highlight -c ERROR:196,bold -c WARN:yellow
+#        └─> ripgrep (core)
+# set -euo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+declare -a WORDS=()     # Words without explicit colors
+declare -A HIGHLIGHT=() # Word-to-color map
+
+# Default colors
+DEFAULT_COLORS=(red blue green cyan magenta yellow)
+
+require_cmd rg "Required for text highlighting"
+
+# Function to show help message
+show_help() {
+  cat << 'EOF'
+Usage: hl [word1] [word2] [word3] ...
+
+Simple wrapper for highlight that assigns default colors to words automatically.
+Reads from stdin and writes colored output to stdout.
+
+DESCRIPTION:
+  Takes a list of words as arguments and highlights each one with a different
+  default color in a cyclic pattern. Much simpler than using highlight directly.
+
+DEFAULT COLOR CYCLE:
+  1st word: red      4th word: cyan
+  2nd word: blue     5th word: magenta
+  3rd word: green    6th word: yellow
+  (cycle repeats for additional words)
+
+EXAMPLES:
+  # Highlight log levels
+  tail -f app.log | hl ERROR WARN INFO DEBUG
+
+  # Monitor processes
+  ps aux | hl python nginx mysql
+
+  # Highlight keywords in code
+  cat script.sh | hl function if else
+
+  # Simple error monitoring
+  echo "error warning info success" | hl error warning info success
+
+NOTES:
+  - Words are matched as exact patterns (case-sensitive)
+  - For regex patterns or custom colors, use the 'highlight' command directly
+  - Colors cycle automatically - no configuration needed
+  - Uses the same highlighting engine as 'highlight' command
+
+SEE ALSO:
+  highlight --help    For advanced highlighting with custom colors and regex
+
+EOF
+}
+
+# Parse CLI arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      show_help
+      exit 0
+      ;;
+    *)
+      WORDS+=("$1")
+      shift
+      ;;
+  esac
+done
+
+# If no words provided, show help
+if [[ ${#WORDS[@]} -eq 0 ]]; then
+  show_help
+  exit 0
+fi
+
+# Assign default colors to plain words
+if [[ ${#WORDS[@]} -gt 0 ]]; then
+  i=0
+  for word in "${WORDS[@]}"; do
+    color="${DEFAULT_COLORS[$((i % ${#DEFAULT_COLORS[@]}))]}"
+    HIGHLIGHT["$word"]="$color"
+    ((i++))
+  done
+fi
+
+# Build highlight command arguments
+highlight_args=()
+for word in "${!HIGHLIGHT[@]}"; do
+  highlight_args+=("-c" "$word:${HIGHLIGHT[$word]}")
+done
+
+# Call the highlight script with the generated arguments
+highlight_script="$(dirname "$0")/highlight"
+if [[ ! -x "$highlight_script" ]]; then
+  err_exit "highlight script not found at: $highlight_script"
+fi
+
+"$highlight_script" "${highlight_args[@]}"

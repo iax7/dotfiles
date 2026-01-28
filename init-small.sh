@@ -8,7 +8,8 @@ if command -v apt >/dev/null 2>&1; then
   sudo apt install -y ${apps[@]}
 fi
 
-./init.sh small-rc
+echo "🔗 Creating symlinks..."
+stow -v small-rc
 
 if command -v vim >/dev/null 2>&1; then
   echo "Bootstraping Vim"

@@ -9,6 +9,7 @@ cmd_exist() { command -v "$1" &> /dev/null; }
 source_if() { [[ -f "$1" && -r "$1" ]] && source "$1"; } # not very useful, use plug instead (kept for consistency)
 eval_if() { command -v "$1" &> /dev/null && source <("$@"); }
 mini_t() { echo -e " \e[31m--\e[0m \e[34m${@}\e[0m \e[31m--\e[0m"; }
+add_path() { [[ -d "$1" ]] && [[ ":$PATH:" != *":$1:"* ]] && export PATH="$1:$PATH"; } # add_path "$HOME/bin"
 # -----------------------------------------------------------------------------
 
 # --------------------------------- PLUGINS -----------------------------------
@@ -22,7 +23,6 @@ plug "wintermi/zsh-mise"
 
 plug "$ZDOTDIR/aliases"
 plug "$ZDOTDIR/globalalias"
-plug "$HOME/.zshrc" # some tools add settings here
 
 # THEME == Oh-My-Posh -- https://ohmyposh.dev/
 export POSH_THEME="$HOME/.config/oh-my-posh/p10k.yaml"

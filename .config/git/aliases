@@ -24,6 +24,7 @@
   ### 📥📤 Pull & Push
   fa   = fetch --all --prune
   po   = !git pull origin $(git bname) --rebase --autostash
+  pom  = !git pull origin $(git rootbr) --rebase --autostash
   pf   = push --force-with-lease
   pushu= push -u origin HEAD
 

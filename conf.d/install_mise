@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# =============================================================================
+# install_mise: Install mise-en-place version manager
+# =============================================================================
+# Description: Installs mise (asdf alternative) if not already installed
+#              and sets up shell integration.
+# URL: https://mise.jdx.dev/installing-mise.html
+# =============================================================================
+set -euo pipefail
+
+# Source .common from DOTFILES_DIR or find it relative to this script
+if [[ -n "${DOTFILES_DIR:-}" ]]; then
+  source "$DOTFILES_DIR/bin/.common" || exit 1
+else
+  source "$(dirname "$(dirname "$0")")/bin/.common" || exit 1
+fi
+
+step "Installing mise"
+
+# Check if already installed
+if cmd_exist mise; then
+  msg_ok "mise already installed: $(mise --version)"
+  exit 0
+fi
+
+# Check dependencies
+require_cmd curl
+
+# Download and install
+curl https://mise.run | sh

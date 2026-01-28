@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# =============================================================================
+# install_homebrew: Install Homebrew package manager for macOS/Linux
+# =============================================================================
+# Description: Installs Homebrew if not already installed and disables analytics
+# URL: https://brew.sh/
+# =============================================================================
+set -euo pipefail
+
+# Source .common from DOTFILES_DIR or find it relative to this script
+if [[ -n "${DOTFILES_DIR:-}" ]]; then
+  source "$DOTFILES_DIR/bin/.common" || exit 1
+else
+  source "$(dirname "$(dirname "$0")")/bin/.common" || exit 1
+fi
+
+step Homebrew
+
+if cmd_exist brew; then
+  msg_ok "Homebrew already installed: $(brew --version | head -1)"
+  exit 0
+fi
+
+msg_info "Installing Homebrew..."
+if NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
+
+  # Add Homebrew to PATH for this session if needed
+  if [[ "$OSTYPE" == darwin* ]]; then
+    # macOS
+    [[ -x "/opt/homebrew/bin/brew" ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+    [[ -x "/usr/local/bin/brew" ]] && eval "$(/usr/local/bin/brew shellenv)"
+  else
+    # Linux
+    [[ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+  fi
+
+  # Disable analytics
+  brew analytics off
+
+  msg_ok "Installed Homebrew successfully: $(brew --version | head -1)"
+else
+  err_exit "Failed to install Homebrew"
+fi

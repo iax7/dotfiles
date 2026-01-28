@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+# =============================================================================
+# highlight: Advanced text highlighter with full color and regex control
+# =============================================================================
+# Description: Highlights text patterns with colors and styles using ripgrep.
+#              Supports regex, 256 colors, and multiple text styles.
+# Usage: highlight [OPTIONS]
+# Examples:
+#   tail -f app.log | highlight -c ERROR:red,bold -c WARN:yellow
+#   cat data.json | highlight -c '"[^"]*":':cyan,bold
+# Note: For simple use cases, try 'hl' which auto-assigns colors
+# =============================================================================
+# set -euo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+require_cmd rg "Required for text highlighting"
+
+# Function to show help message
+show_help() {
+  cat << EOF
+Usage: $(basename "$0") [OPTIONS]
+
+Highlights text patterns with colors and styles using ripgrep.
+Reads from stdin and writes colored output to stdout.
+
+OPTIONS:
+  -c, --color PATTERN:COLOR[,STYLE]
+                Highlight PATTERN with COLOR and optional STYLE
+                Can be used multiple times for different patterns
+  -h, --help    Show this help message
+
+COLORS:
+  Basic colors: red, blue, green, cyan, magenta, yellow, white, black
+  256-color:    Use numbers 0-255 for extended color palette
+
+STYLES:
+  bold, nobold            Bold/normal text weight
+  intense, nointense      Bright/normal color intensity
+  underline, nounderline  Underlined/normal text
+
+EXAMPLES:
+  # Highlight errors in red and warnings in yellow
+  echo 'error warning info' | highlight -c error:red,bold -c warning:yellow
+
+  # Use 256 colors with styles
+  tail -f app.log | highlight -c ERROR:196,bold -c INFO:33
+
+  # Multiple patterns with different styles
+  ps aux | highlight -c python:green -c nginx:blue,underline -c mysql:red
+
+  # Highlight JSON keys
+  cat data.json | highlight -c '"[^"]*":':cyan,bold
+
+NOTES:
+  - Patterns support full regex syntax (Rust regex crate)
+  - Multiple -c options can be combined
+  - Colors are applied in the order specified
+  - Uses ripgrep for fast, accurate highlighting
+
+EOF
+}
+
+colorize() {
+  local color="$1"
+  local style="${2:-nobold}"
+  local pattern="$3"
+  # https://github.com/BurntSushi/ripgrep/blob/master/FAQ.md#how-do-i-configure-ripgreps-colors
+  # --colors '{type}:{attribute}:{value}'
+  #                        style: [no]bold, [no]intense, [no]underline
+  #                        fg,bg: red, blue, green, cyan, magenta, yellow, white or black | or 256 color number
+  rg --no-config -P --color=always --colors "match:fg:$color" --colors "match:style:$style" --passthru -e "$pattern";
+}
+
+declare -A HIGHLIGHT=() # Word-to-color map
+
+# Parse CLI arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -c|--color)
+      if [[ "$2" =~ ^([^:]+):(.+)$ ]]; then
+        HIGHLIGHT["${BASH_REMATCH[1]}"]="${BASH_REMATCH[2]}"
+      else
+        echo "Error: use format pattern:color[,style]" >&2
+        exit 1
+      fi
+      shift 2
+      ;;
+    -h|--help)
+      show_help
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# Apply highlighting in multiple rg passes (one per word/color)
+apply_highlight() {
+  local input=$(cat)
+  for word in "${!HIGHLIGHT[@]}"; do
+    IFS=',' read -r color style <<< "${HIGHLIGHT[$word]}"
+    input=$(echo "$input" | colorize "$color" "$style" "$word")
+  done
+
+  echo "$input"
+}
+
+# Main execution
+if [[ ${#HIGHLIGHT[@]} -eq 0 ]]; then
+  # No patterns provided, just pass through
+  cat
+else
+  apply_highlight
+fi

@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# =============================================================================
+# cmds: Interactive command selector with fzf
+# =============================================================================
+# Description: Browse and execute predefined commands from a YAML config file
+#              using fzf for interactive selection.
+# Usage: cmds [-d] [-l]
+# Options:
+#   -d    Dry run (show command without executing)
+#   -l    Load last selected command from cache
+# Config: ~/.iax/commands.yaml
+# =============================================================================
+set -euo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+CMDS_FILE="${CMDS_FILE:-${DOTFILES_DIR}/commands.yaml}"
+CACHE_FILE="/tmp/_cmds_last_selected"
+DRY_RUN=false
+USE_LAST=false
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -d|--dry-run) DRY_RUN=true; shift ;;
+    -l|--last)    USE_LAST=true; shift ;;
+    -h|--help)
+      echo "Usage: $(basename "$0") [-d] [-l]"
+      echo "  -d, --dry-run  Show command without executing"
+      echo "  -l, --last     Use last selected command"
+      exit 0
+      ;;
+    *)
+      err_exit "Unknown option: $1"
+      ;;
+  esac
+done
+
+# Validate dependencies and config
+if [[ ! -f "$CMDS_FILE" ]]; then
+  err_exit "Config file not found: $CMDS_FILE"
+fi
+require_cmd yq
+require_cmd fzf
+
+# Prepare title
+title='Command Selector'
+cmd_exist lolcat && title=$(echo "$title" | lolcat -f)
+
+# Use cached selection or show interactive selector
+if $USE_LAST && [[ -s "$CACHE_FILE" ]]; then
+  selection=$(cat "$CACHE_FILE")
+else
+  # Show descriptions in fzf and get the selection
+  selection=$(yq -r '.[] | [.name, .desc] | @tsv' "$CMDS_FILE" | \
+    while IFS=$'\t' read -r name desc; do
+      printf "\033[32m%-20s\033[0m\t\033[34m%s\033[0m\n" "$name" "$desc"
+    done | \
+    fzf -d $'\t' --cycle --tmux 80% --ansi --layout=reverse --border=rounded --border-label=" $title " \
+      --color=prompt:#d7005f,hl:#f26096,hl+:#f92672,label:bold:black,border:-1 \
+      --prompt="Select a command: " | \
+    awk -F'\t' '{print $1}' | \
+    sed 's/[[:space:]]*$//' || true
+  )
+fi
+
+# Process the selection
+if [[ -z "$selection" ]]; then
+  msg_info "No command selected"
+  exit 0
+fi
+
+# Cache the selection
+echo "$selection" > "$CACHE_FILE"
+
+# Query the YAML for command details
+query='.[] | select(.name == strenv(SEL))'
+desc=$(SEL="$selection" yq "$query | .desc" "$CMDS_FILE")
+cmd=$(SEL="$selection" yq "$query | .cmd" "$CMDS_FILE")
+condition=$(SEL="$selection" yq "$query | .if" "$CMDS_FILE" || echo "null")
+
+# Check condition if present
+if [[ "$condition" != "null" && -n "$condition" ]]; then
+  if ! eval "$condition"; then
+    err_exit "Condition failed: ${YEL}$condition${RST}"
+  fi
+fi
+
+# Display and execute
+msg "${BLU}${desc}${RST}"
+print_line 33
+
+if $DRY_RUN; then
+  echo "$cmd"
+else
+  eval "$cmd"
+fi

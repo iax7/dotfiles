@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# =============================================================================
+# git-up: Update git repository with upstream/origin
+# =============================================================================
+# Description: Pulls latest changes from upstream or origin, handles rebasing,
+#              and pushes local commits if needed. Works on master/main branch.
+# Usage: git-up [directory]
+# =============================================================================
+# set -euo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+# Count number of local commits ahead of origin
+num_commits() {
+  git log --oneline origin/master... 2>/dev/null | wc -l | tr -d ' '
+}
+
+has_upstream() {
+  git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1
+}
+
+# When a directory is provided
+if [[ -n "${1:-}" ]]; then
+  cd "$1" || exit 1
+  trap 'cd - >/dev/null' EXIT
+fi
+
+msg_title "Working on ${BLD}${GRE}$(basename "$PWD")"
+
+# Validate git repository
+only_git 2 1
+
+# Validate it has remotes
+if ! git remote | grep -q .; then
+  msg_skip "Does not have any remote " | indent
+  exit 1
+fi
+
+if ! git rev-parse HEAD >/dev/null 2>&1; then
+  msg_skip "No commits yet (EMPTY repo)" | indent
+  exit 0
+fi
+
+# Check if on master/main branch
+branch=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$branch" != 'master' && "$branch" != 'main' ]]; then
+  msg_skip "You're not in ${GRE}master/main${CYA} branch (currently: ${YEL}$branch${CYA})" | indent
+  exit 0
+fi
+
+# Check for uncommitted changes
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  msg_warn " Has uncommitted changes" | indent
+fi
+
+if ! has_upstream; then
+  msg_error " There is no tracking information for the current branch" | indent
+  exit 1
+fi
+
+if git remote show upstream &>/dev/null; then
+  git pull upstream "$branch" --rebase --autostash
+
+  local num_ahead=$(num_commits)
+  if [[ "$num_ahead" -gt 0 ]]; then
+    echo -e "${YEL}--> Pushing $num_ahead commit(s)...${RST}" | indent
+    git push
+  fi
+else
+  msg_info "This repo does not have ${YEL}upstream${BLU} remote" | indent
+  if ! git pull --rebase --autostash; then
+    msg_error "Failed to pull changes. Retrying 󰑘..." | indent
+    sleep 1
+    git pull --rebase --autostash
+  fi
+fi

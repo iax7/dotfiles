@@ -1,0 +1,55 @@
+---
+- name: macOS files
+  desc: Remove macOS files from current directory (fd)
+  cmd: |
+    mini_t() { echo -e "\e[31m--\e[0m \e[34m${@}\e[0m \e[31m--\e[0m"; }
+    mini_t 'Removing \e[33m.DS_Store' && fd -ug -tf .DS_Store -x rm -v
+    mini_t 'Removing \e[33m.Trashes ' && fd -ug -td .Trashes -x rm -rfv
+    mini_t 'Removing \e[33m._* files' && fd -ug -tf '._*' -x rm -v
+- name: Remove Symlinks
+  desc: Remove all symbolic links from current directory (fd)
+  cmd: fd -ug -tl -d1 -x rm -v
+- name: Show Fg colors
+  desc: Print 256 foreground color
+  cmd: for i in {0..255}; do printf '\e[38;5;%dm%3d ' $i $i; (((i+3) % 18)) || printf '\e[0m\n'; done && echo -e "\e[0m"
+- name: Show Bg colors
+  desc: Print 256 background color
+  cmd: for i in {0..255}; do printf '\e[48;5;%dm%3d ' $i $i; (((i+3) % 18)) || printf '\e[0m\n'; done && echo -e "\e[0m"
+- name: Init Git/GPG
+  desc: Initialize SSH and GPG keys
+  cmd: |
+    mini_t() { echo -e "\e[31m--\e[0m \e[34m${@}\e[0m \e[31m--\e[0m"; }
+    mini_t SSH
+    ssh-add -l | grep --color -iE "$USER" || ssh-add
+    mini_t GPG
+    echo test | gpg -e -r DAC9D9C180E66CB4 | gpg -d
+- name: Public IP
+  desc: public ipv4 address
+  cmd: |
+    # slow: curl -s https://ifconfig.me
+    dig -4 TXT +short o-o.myaddr.l.google.com @ns1.google.com | tr -d \"
+- name: Load Time
+  desc: Zsh load time
+  cmd: time zsh -ic true
+- name: Users info
+  desc: Show /etc/passwd info
+  cmd: >
+    column -s: -t -N NAME,PASS,UID,GID,INFO,HOME,SHELL -H PASS -R UID,GID /etc/passwd
+- name: Clean & trans HEIC
+  desc: Convert HEIC to JPG, remove exif data and shrink to 50% (current dir)
+  cmd: >
+    fd -tf -e heic -d1 . -x magick {} -strip -resize 50% {.}.jpg
+- name: Arch Update Mirrors
+  desc: Update mirror list (Arch Linux)
+  if: grep -q ID=arch /etc/os-release
+  cmd: |
+    sudo reflector --country 'Mexico,United States' --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+    sudo pacman -Syyu
+- name: Fix Permissions (current dir)
+  desc: Set owner (uid=1000) and access u+rwX
+  cmd: |
+    sudo chown -R 1000:1000 .
+    sudo chmod -R u+rwX,go+rX .
+- name: Duplicated paths
+  desc: Find duplicated files in PATH
+  cmd: tr ':' '\n' <<< "$PATH" | sort | uniq -d | nl

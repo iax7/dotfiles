@@ -1,3 +1,4 @@
+#!/usr/bin/env zsh
 alias sudo='sudo '
 alias cd..='cd ..'
 alias ..='cd ..'
@@ -38,3 +39,12 @@ if cmd_exist mise; then
   alias mr='mise run'       # mise r
   alias mR='mise uninstall' # mise rm
 fi
+# NeoVIM - https://neovim.io/ ---------
+if cmd_exist nvim; then
+  export EDITOR=nvim
+  export VISUAL=$EDITOR
+  alias vim='nvim'
+fi
+
+# ----------[ Functions ]------------------------------------------------------
+mkcd() { mkdir -p "$1" && cd "$1"; }

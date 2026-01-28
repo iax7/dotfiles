@@ -1,22 +1,19 @@
 #!/usr/bin/env bash
-cmd_exist() { command -v "$1" &> /dev/null; }
 
 xcode-select --install
 
 # Mise -- https://mise.jdx.dev/
-cmd_exist mise || curl https://mise.run | sh
+conf.d/install_mise
 
 # Brew -- https://brew.sh
-if ! cmd_exist brew; then
-  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  brew analytics off
-fi
+conf.d/install_homebrew
 
 # Basic packages
 APPS=(
-  libyaml # Required for Ruby
-  gnupg   # gpg2
-  pinentry-mac
+  libyaml      # Required for Ruby
+  gnupg        # gpg2
+  pinentry-mac # gpg2 GUI password prompt
+  bash
   bat
   eza
   fd
@@ -29,9 +26,15 @@ APPS=(
   tmux
   xh
   zoxide
+  oh-my-posh   # Prompt theming engine
 )
 brew install "${APPS[@]}"
 brew install --cask font-jetbrains-mono-nerd-font
 
+DOTFILES_DIR="$(basename $PWD)"
+ln -sfv "$DOTFILES_DIR/bin" "$HOME/bin"
+
 stow -vt ~/.config .config
-./init.sh zsh
+stow -v zsh
+
+nvim --headless "+Lazy! sync" +qa

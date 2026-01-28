@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+# Removes ANSI escape sequences (colors, formatting, etc.) from text
+# Usage: rm_ansi [file...]        # from file(s)
+#        command | rm_ansi        # from stdin
+
+# Comprehensive pattern that handles most ANSI escape sequences
+sed_expr='s/\x1b\[[0-9;]*[mGKHfJABCDsuhlp]//g;s/\x1b\[?[0-9]*[hl]//g'
+
+if [ -t 0 ] && [ $# -gt 0 ]; then
+  # Process files if provided and stdin is a terminal
+  sed "$sed_expr" "$@"
+else
+  # Process stdin
+  sed "$sed_expr"
+fi
