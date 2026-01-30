@@ -418,5 +418,50 @@ countdown() {
   printf "\r\033[K"  # Clear the line
 }
 
+# Create or verify a symbolic link, with validation and clear feedback
+# Checks if symlink exists and points to correct source before recreating
+# Parameters:
+#   $1 target  - Path where the symlink should be created (required)
+#   $2 source  - Path that the symlink should point to (required)
+# Usage:
+#   set_symlink "$HOME/bin" "$DOTFILES_DIR/bin"
+#   set_symlink "$HOME/.vimrc" "$DOTFILES_DIR/vim/.vimrc"
+set_symlink() {
+  local target="$1"
+  local source="$2"
+
+  # Validate parameters
+  if [[ -z "$target" ]] || [[ -z "$source" ]]; then
+    msg_error "Missing parameters. Usage: set_symlink <target> <source>"
+    return 1
+  fi
+
+  # Verify source exists
+  # [[ ! -e "$source" ]] && { msg_error "Source path doesn't exist: $source"; return 1; }
+
+  # Check if symlink already exists and is correct
+  if [[ -L "$target" ]] && [[ "$(readlink "$target")" == "$source" ]]; then
+    msg_info "$target${RST} ${DIM}->${RST} $source (${GRE}already correct${RST})"
+    return 0
+  fi
+
+  # Remove existing file/directory/broken symlink if present
+  if [[ -e "$target" ]] || [[ -L "$target" ]]; then
+    if [[ -d "$target" ]] && [[ ! -L "$target" ]]; then
+      msg_warn "Removing existing: $target"
+    fi
+    rm "$target"
+  fi
+
+  # Create the symlink
+  if ln -sf "$source" "$target"; then
+    msg_ok "$target${RST} ${DIM}->${RST} $source"
+    return 0
+  else
+    msg_error "Failed to create symlink: $target"
+    return 1
+  fi
+}
+
 export DISTRO=$(get_distro)
 export DOTFILES_DIR="$HOME/.dotfiles"

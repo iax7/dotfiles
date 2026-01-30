@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+. bin/.common || exit 1
 
 xcode-select --install
 
@@ -7,34 +8,14 @@ conf.d/install_mise
 
 # Brew -- https://brew.sh
 conf.d/install_homebrew
+brew bundle # Basic packages
 
-# Basic packages
-APPS=(
-  libyaml      # Required for Ruby
-  gnupg        # gpg2
-  pinentry-mac # gpg2 GUI password prompt
-  bash
-  bat
-  eza
-  fd
-  fzf
-  git-delta
-  lazygit
-  neovim
-  ripgrep
-  stow
-  tmux
-  xh
-  zoxide
-  oh-my-posh   # Prompt theming engine
-)
-brew install "${APPS[@]}"
-brew install --cask font-jetbrains-mono-nerd-font
-
+step "Setting up symlinks and configurations"
 DOTFILES_DIR="$(basename $PWD)"
-ln -sfv "$DOTFILES_DIR/bin" "$HOME/bin"
+set_symlink "$HOME/bin" "$DOTFILES_DIR/bin" | indent
 
 stow -vt ~/.config .config
 stow -v zsh
 
+step "Setting up Neovim with Lazy.nvim"
 nvim --headless "+Lazy! sync" +qa
