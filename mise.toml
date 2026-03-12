@@ -1,0 +1,25 @@
+[vars]
+gpg_key = 'DAC9D9C180E66CB4'
+
+[tasks.brewfile]
+alias = "b"
+description = "Update Brewfile"
+run = "brew bundle dump --describe --force --brews --casks --taps --mas"
+
+[tasks.gpg-export]
+alias = "ge"
+description = "Export GPG keys"
+run = [
+  "gpg --export --armor {{vars.gpg_key}} > ~/Downloads/gpg_public_key.asc",
+  "gpg --export-secret-keys --armor {{vars.gpg_key}} > ~/Downloads/gpg_private_key.asc",
+  "gpg --export-ownertrust > ~/Downloads/gpg_ownertrust.txt"
+]
+
+[tasks.gpg-import]
+alias = "gi"
+description = "Import GPG keys"
+run = [
+  "gpg --import ~/Downloads/gpg_public_key.asc",
+  "gpg --import ~/Downloads/gpg_private_key.asc",
+  "gpg --import-ownertrust ~/Downloads/gpg_ownertrust.txt"
+]
