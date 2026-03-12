@@ -15,11 +15,13 @@ add_path() { [[ -d "$1" ]] && [[ ":$PATH:" != *":$1:"* ]] && export PATH="$1:$PA
 # --------------------------------- PLUGINS -----------------------------------
 plug "zap-zsh/supercharge"
 plug "zsh-users/zsh-autosuggestions"
-plug "zsh-users/zsh-history-substring-search"
 plug "z-shell/F-Sy-H"    # or "zsh-users/zsh-syntax-highlighting"
+plug "zap-zsh/fzf"
 plug "Aloxaf/fzf-tab"    # or "zap-zsh/completions"
-plug "trapd00r/LS_COLORS"
 plug "wintermi/zsh-mise"
+
+cmd_exist vivid && export LS_COLORS="$(vivid generate molokai)" || \
+  plug "trapd00r/LS_COLORS"
 
 plug "$ZDOTDIR/aliases"
 plug "$ZDOTDIR/globalalias"
@@ -29,5 +31,7 @@ export POSH_THEME="$HOME/.config/oh-my-posh/p10k.yaml"
 plug "wintermi/zsh-oh-my-posh"
 
 # ================================= Config Programs ============================
-# ---- Zoxide (better cd) with Workarounds (conflicts with Zi's z command)
+# ---- Zoxide (better cd) with Workarounds ----
 eval_if zoxide init --cmd cd zsh
+# ---- Atuin (better history) ---- # --disable-up-arrow
+eval_if atuin init zsh
