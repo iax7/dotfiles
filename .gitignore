@@ -5,7 +5,8 @@
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -73,3 +74,10 @@ config.local.fish
 **/.ssh/*_id_*
 **/.ssh/known_hosts
 
+# iTerm2 shell integration
+/.config/zsh/.iterm2_shell_integration.zsh
+
+# GPG keys
+public_key.asc
+private_key.asc
+ownertrust.txt

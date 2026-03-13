@@ -45,8 +45,8 @@
   cmd: |
     sudo reflector --country 'Mexico,United States' --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
     sudo pacman -Syyu
-- name: Fix Permissions (current dir)
-  desc: Set owner (uid=1000) and access u+rwX
+- name: Fix Permissions
+  desc: Set owner (uid=1000) and access u+rwX (current dir)
   cmd: |
     sudo chown -R 1000:1000 .
     sudo chmod -R u+rwX,go+rX .
