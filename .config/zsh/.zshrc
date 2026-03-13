@@ -31,6 +31,11 @@ export POSH_THEME="$HOME/.config/oh-my-posh/p10k.yaml"
 plug "wintermi/zsh-oh-my-posh"
 
 # ================================= Config Programs ============================
+# ---- Homebrew ----
+export HOMEBREW_NO_ENV_HINTS=1
+# ---- GPG (GNU Privacy Guard) ----
+export GNUPGHOME="$XDG_CONFIG_HOME/gnupg"
+export GPG_TTY=$(tty)
 # ---- Zoxide (better cd) with Workarounds ----
 eval_if zoxide init --cmd cd zsh
 # ---- Atuin (better history) ---- # --disable-up-arrow

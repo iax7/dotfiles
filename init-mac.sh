@@ -15,6 +15,7 @@ DOTFILES_DIR="$(basename $PWD)"
 set_symlink "$HOME/bin" "$DOTFILES_DIR/bin" | indent
 
 stow -vt ~/.config .config
+stow -v -t ~/.gnupg gnupg
 stow -v zsh
 
 step "Setting up Neovim with Lazy.nvim"
