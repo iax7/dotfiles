@@ -35,7 +35,7 @@ plug "wintermi/zsh-oh-my-posh"
 # ---- Homebrew ----
 export HOMEBREW_NO_ENV_HINTS=1
 # ---- GPG (GNU Privacy Guard) ----
-export GNUPGHOME="$XDG_CONFIG_HOME/gnupg"
+# export GNUPGHOME="$XDG_CONFIG_HOME/gnupg"
 export GPG_TTY=$(tty)
 # ---- Zoxide (better cd) with Workarounds ----
 eval_if zoxide init --cmd cd zsh

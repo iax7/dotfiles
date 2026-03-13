@@ -9,6 +9,9 @@
 - name: Remove Symlinks
   desc: Remove all symbolic links from current directory (fd)
   cmd: fd -ug -tl -d1 -x rm -v
+- name: Remove Broken Symlinks
+  desc: Remove all broken symbolic links from current dir
+  cmd: find . -maxdepth 1 -type l ! -exec test -e {} \; -print -delete
 - name: Show Fg colors
   desc: Print 256 foreground color
   cmd: for i in {0..255}; do printf '\e[38;5;%dm%3d ' $i $i; (((i+3) % 18)) || printf '\e[0m\n'; done && echo -e "\e[0m"
