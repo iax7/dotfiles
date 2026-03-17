@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+# =============================================================================
+# icon-set: Apply '.icon.png' folder icons (optionally recursively)
+# =============================================================================
+# Description: Sets the folder icon from the '.icon.png' file found in a
+#              directory. By default only the current (or given) directory is
+#              processed; with -r/--recursive it scans the tree and applies
+#              every '.icon.png' found, delegating each one to the platform
+#              backend (icon-linux-set / icon-mac-set).
+# Usage: icon-set [-r] [-d N] [-n] [-a] [directory]
+# =============================================================================
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/.common" || exit 1
+
+######################################
+# Constants
+######################################
+ICON_NAME='.icon.png'
+
+######################################
+# Helpers
+######################################
+
+# Prints the usage/help text.
+usage() {
+  printf '%b\n' "Usage: ${GRE}$(basename "$0")${RST} [options] [directory]
+
+Apply the '$ICON_NAME' folder icon in a directory.
+
+Options:
+  -r, --recursive    Scan subdirectories and apply every '$ICON_NAME' found
+  -d, --depth N      Max scan depth (implies -r)
+  -n, --dry-run      Only show what would be done
+  -a, --all          Include ignored files/dirs (fd --no-ignore)
+  -h, --help         Show this help
+
+Arguments:
+  directory          Start directory (default: current directory)
+
+Examples:
+  icon-set                  # current directory only
+  icon-set -r               # whole tree under the current directory
+  icon-set -r -d 2 ~/Pics   # two levels deep"
+}
+
+# Prints a path without a leading './'.
+# Usage: clean_path <path>
+clean_path() {
+  local path="$1"
+  if [[ "$path" == "." ]]; then
+    printf '.'
+  else
+    printf '%s' "${path#./}"
+  fi
+}
+
+# Applies the icon in a directory using the platform backend.
+# Runs in a subshell so the caller's working directory is never changed.
+# Usage: apply_icon <directory>
+apply_icon() {
+  ( cd -- "$1" && "$BACKEND" )
+}
+
+######################################
+# Main
+######################################
+
+recursive=false
+dry_run=false
+include_all=false
+max_depth=''
+declare -a positionals=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    -r | --recursive)
+      recursive=true
+      shift
+      ;;
+    -d | --depth)
+      [[ $# -ge 2 ]] || err_exit "Missing value for $1."
+      max_depth="$2"
+      recursive=true
+      shift 2
+      ;;
+    -d[0-9]* | --depth=*)
+      max_depth="${1#-d}"
+      max_depth="${max_depth#*=}"
+      recursive=true
+      shift
+      ;;
+    -n | --dry-run)
+      dry_run=true
+      shift
+      ;;
+    -a | --all)
+      include_all=true
+      shift
+      ;;
+    --)
+      shift
+      positionals+=("$@")
+      break
+      ;;
+    -*)
+      err_exit "Unknown option: $1. Try --help."
+      ;;
+    *)
+      positionals+=("$1")
+      shift
+      ;;
+  esac
+done
+
+[[ ${#positionals[@]} -le 1 ]] || err_exit "Too many arguments. Try --help."
+target="${positionals[0]:-.}"
+
+if [[ -n "$max_depth" && ! "$max_depth" =~ ^[0-9]+$ ]]; then
+  err_exit "--depth must be a non-negative integer."
+fi
+
+[[ -d "$target" ]] || err_exit "Not a directory: $BLU$target$RST."
+cd -- "$target" || err_exit "Cannot access: $BLU$target$RST."
+
+# Resolve the platform backend (prefer the one next to this script).
+if in_linux; then
+  BACKEND="$SCRIPT_DIR/icon-linux-set"
+  [[ -x "$BACKEND" ]] || BACKEND='icon-linux-set'
+elif in_mac; then
+  BACKEND="$SCRIPT_DIR/icon-mac-set"
+  [[ -x "$BACKEND" ]] || BACKEND='icon-mac-set'
+else
+  err_exit "Unsupported OS: $OSTYPE."
+fi
+require_cmd "$BACKEND"
+
+# Single directory: just delegate.
+if [[ "$recursive" != true ]]; then
+  [[ -f "$ICON_NAME" ]] || err_exit "$GRE$ICON_NAME$RED file not found in $BLU$(clean_path "$PWD")$RST."
+
+  if [[ "$dry_run" == true ]]; then
+    msg_info "[dry-run] would set $BLU$(clean_path "$PWD")$RST"
+    exit 0
+  fi
+
+  apply_icon .
+  msg_ok "Icon set for $BLU$(clean_path "$PWD")$RST"
+  exit 0
+fi
+
+# Recursive: find every '.icon.png' and apply it in its directory.
+require_cmd fd
+
+fd_args=(--type f --hidden --exclude .git --glob "$ICON_NAME" -0)
+[[ "$include_all" == true ]] && fd_args+=(--no-ignore)
+[[ -n "$max_depth" ]] && fd_args+=(--max-depth "$max_depth")
+
+msg "Searching for [$GRE$ICON_NAME$RST] in '$BLU$(clean_path "$PWD")$RST'..."
+
+declare -a icons=()
+while IFS= read -r -d '' icon; do
+  icons+=("$icon")
+done < <(fd "${fd_args[@]}")
+
+total=${#icons[@]}
+if [[ $total -eq 0 ]]; then
+  msg_warn "No '$ICON_NAME' files found."
+  exit 0
+fi
+
+msg "Found $GRE$total$RST icon(s) to set."
+
+if [[ "$dry_run" == true ]]; then
+  for icon in "${icons[@]}"; do
+    dir="$(dirname -- "$icon")"
+    msg_info "[dry-run] $BLU$(clean_path "$dir")$RST"
+  done
+  exit 0
+fi
+
+failed=0
+index=0
+for icon in "${icons[@]}"; do
+  index=$((index + 1))
+  dir="$(dirname -- "$icon")"
+
+  if apply_icon "$dir"; then
+    msg_ok "[$GRE$index$RST/$BBLK$total$RST] $(clean_path "$dir")"
+  else
+    status=$?
+    if [[ $status -eq 130 ]]; then
+      msg_info "Cancelled."
+      exit 130
+    fi
+    msg_error "[$index/$total] failed: $(clean_path "$dir")"
+    failed=$((failed + 1))
+  fi
+done
+
+(( failed == 0 )) || err_exit "$failed folder(s) failed."
+msg_ok "Done: $GRE$total$RST icon(s) set."

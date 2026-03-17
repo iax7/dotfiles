@@ -1,0 +1,9 @@
+**/LICENSE
+**/README.md
+AGENTS.md
+docs/
+favicon.png
+
+{{ if ne .chezmoi.os "linux" }}
+.hidden
+{{ end }}

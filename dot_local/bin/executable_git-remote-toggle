@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+# =============================================================================
+# git-remote-toggle: Toggle a git remote URL between HTTPS and SSH
+# =============================================================================
+# Description: Reads the URL of a git remote (default: origin) and converts it
+#              between https://host/user/repo[.git] and git@host:user/repo[.git]
+#              preserving the path and any .git suffix. Credentials embedded in
+#              an HTTPS URL are dropped when switching to SSH.
+# Usage: git-remote-toggle [remote] [-n|--dry-run] [-h|--help]
+# =============================================================================
+set -euo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+REMOTE='origin'
+DRY_RUN=false
+
+# Print usage help
+usage() {
+  cat << EOF
+Usage: $(basename "$0") [remote] [options]
+
+Toggle <remote> (default: origin) between HTTPS and SSH URLs:
+
+  HTTPS  https://github.com/user/repo.git
+  SSH    git@github.com:user/repo.git
+
+Options:
+  -n, --dry-run  Show the resulting URL without changing the remote
+  -h, --help     Show this help
+EOF
+}
+
+# Description: Convert an HTTPS URL to its SSH equivalent
+# Usage: url_to_ssh <url>
+url_to_ssh() {
+  local url="$1" rest host path port=''
+  rest="${url#*://}" # strip scheme
+  rest="${rest%%\?*}" # drop query string
+  rest="${rest%%#*}" # drop fragment
+  host="${rest%%/*}"
+  path="${rest#*/}"
+  host="${host##*@}" # drop user[:token] credentials
+  if [[ "$host" == *:* ]]; then
+    port="${host##*:}"
+    host="${host%:*}"
+  fi
+  [[ -z "$path" || "$path" == "$rest" ]] && err_return "Cannot parse URL: ${YEL}$url"
+  if [[ -n "$port" ]]; then
+    printf 'ssh://git@%s:%s/%s\n' "$host" "$port" "$path"
+  else
+    printf 'git@%s:%s\n' "$host" "$path"
+  fi
+}
+
+# Description: Convert an scp-like (git@host:path) or ssh:// URL to HTTPS
+# Usage: url_to_https <url>
+url_to_https() {
+  local url="$1" rest host path port=''
+  case "$url" in
+  ssh://*)
+    rest="${url#ssh://}"
+    host="${rest%%/*}"
+    path="${rest#*/}"
+    host="${host##*@}"
+    if [[ "$host" == *:* ]]; then
+      port="${host##*:}"
+      host="${host%:*}"
+    fi
+    ;;
+  *@*:*) # scp-like syntax: user@host:path
+    rest="${url#*@}"
+    host="${rest%%:*}"
+    path="${rest#*:}"
+    ;;
+  *)
+    err_return "Cannot parse URL: ${YEL}$url"
+    ;;
+  esac
+  [[ -z "$path" || "$path" == "$rest" ]] && err_return "Cannot parse URL: ${YEL}$url"
+  if [[ -n "$port" ]]; then
+    printf 'https://%s:%s/%s\n' "$host" "$port" "$path"
+  else
+    printf 'https://%s/%s\n' "$host" "$path"
+  fi
+}
+
+######################################
+# Main
+######################################
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  -n | --dry-run) DRY_RUN=true ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  -*) err_exit "Unknown option: ${YEL}$1" ;;
+  *) REMOTE="$1" ;;
+  esac
+  shift
+done
+
+require_cmd git
+only_git 0 1
+
+if ! CURRENT="$(git remote get-url "$REMOTE" 2> /dev/null)"; then
+  err_exit "Remote ${YEL}$REMOTE${RED} not found"
+fi
+
+case "$CURRENT" in
+https://* | http://*)
+  NEW="$(url_to_ssh "$CURRENT")"
+  PROTO='SSH'
+  ;;
+ssh://* | *@*:*)
+  NEW="$(url_to_https "$CURRENT")"
+  PROTO='HTTPS'
+  ;;
+*)
+  err_exit "Unsupported remote URL: ${YEL}$CURRENT"
+  ;;
+esac
+
+if [[ "$NEW" == "$CURRENT" ]]; then
+  msg_skip "Remote ${BLD}$REMOTE${CYA} is already using ${BLD}$PROTO${CYA} URLs"
+  exit 0
+fi
+
+msg_info "Remote ${BLD}$REMOTE${RST}${BLU}: ${DIM}$CURRENT${RST}"
+echo -e "   ${GRE}→${RST} $NEW"
+
+if $DRY_RUN; then
+  msg_skip 'Dry run, remote unchanged'
+  exit 0
+fi
+
+git remote set-url "$REMOTE" "$NEW"
+msg_ok "Remote ${BLD}$REMOTE${RST}${GRE} now uses ${BLD}$PROTO"
