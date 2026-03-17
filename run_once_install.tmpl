@@ -1,0 +1,18 @@
+#!/usr/bin/env zsh
+
+{{ if eq .chezmoi.os "darwin" -}}
+echo "Installing Xcode Command Line Tools..."
+xcode-select --install
+
+echo "Installing Homebrew packages..."
+brew bundle --file={{ joinPath .chezmoi.sourceDir ".support/Brewfile" }}
+{{- else if eq .chezmoi.os "linux" -}}
+echo "Installing Linux packages..."
+
+{{ end -}}
+
+echo "Setting up Vim..."
+vim +PlugInstall +qall
+
+echo "Setting up Neovim with Lazy.nvim..."
+nvim --headless "+Lazy! sync" +qa

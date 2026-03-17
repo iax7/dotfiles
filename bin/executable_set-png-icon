@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# =============================================================================
+# set-png-icon: Set folder icon using a PNG (and optionally ICO) file
+# =============================================================================
+# Description: Sets Linux (and Windows) '.icon.png' folder icon in the
+#              current directory. Renames any found PNG/ICO file to the
+#              expected name, or converts PNG to ICO via ImageMagick.
+# Usage: set-png-icon
+# =============================================================================
+set -euo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+require_cmd fd
+
+######################################
+# Constants
+######################################
+BASE_NAME='.icon'
+PNG_NAME="$BASE_NAME.png"
+WIN_NAME="$BASE_NAME.ico"
+
+######################################
+# Helpers
+######################################
+
+# Renames a file and prints a message.
+# Usage: move <from> <to>
+move() {
+  local from="$1"
+  local to="$2"
+  command mv "$from" "$to" && msg "Renamed $YEL$from$RST -> $BLU$to$RST"
+}
+
+# Finds a single PNG file in the current directory and renames it.
+# Exits with error if none (or multiple) are found.
+set_png() {
+  local -a icon_files
+  mapfile -t icon_files < <(fd -d 1 -t f -e "png" --exclude '.VolumeIcon*')
+  if [[ ${#icon_files[@]} -eq 1 ]]; then
+    move "${icon_files[0]}" "$PNG_NAME"
+  else
+    err_exit "$GRE$PNG_NAME$RED file not found (and no fallback found)."
+  fi
+}
+
+# Finds a single ICO file and renames it, or converts the PNG via ImageMagick.
+# Skips silently if ImageMagick is not installed.
+set_ico() {
+  local -a icon_files
+  mapfile -t icon_files < <(fd -d 1 -t f -e 'ico' --exclude '.VolumeIcon*')
+
+  if [[ ${#icon_files[@]} -gt 1 ]]; then
+    warn "Multiple .ico files found, skipping rename."
+  elif [[ ${#icon_files[@]} -eq 1 ]]; then
+    move "${icon_files[0]}" "$WIN_NAME"
+    return 0
+  fi
+
+  # Requires ImageMagick if no .ico file found
+  if ! cmd_exist magick; then
+    warn "ImageMagick is not installed." && return 0
+  fi
+
+  magick "$PNG_NAME" -define icon:auto-resize=256,128,64,48,40,32,24,20,16 "$WIN_NAME"
+  msg "Converted $PNG_NAME -> $BLU$WIN_NAME$RST"
+}
+
+######################################
+# Main
+######################################
+
+[[ ! -f $PNG_NAME ]] && set_png  # Linux/macOS png — exit if not found
+[[ ! -f $WIN_NAME ]] && set_ico  # Windows ico   — continue if not found
+
+in_mac && set-mac-icon || set-linux-icon

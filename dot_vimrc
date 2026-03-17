@@ -1,0 +1,226 @@
+" ============================================================
+" AUTO-INSTALL vim-plug
+" ============================================================
+if empty(glob('~/.vim/autoload/plug.vim'))
+  silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
+    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
+
+" Run PlugInstall if there are missing plugins
+autocmd VimEnter * if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
+  \| PlugInstall --sync | source $MYVIMRC
+\| endif
+" ============================================================
+" PLUGINS (vim-plug) -- https://github.com/junegunn/vim-plug
+" ============================================================
+" :PlugInstall
+call plug#begin('~/.vim/plugged')
+
+" Core
+Plug 'tpope/vim-sensible'             " Sensible defaults
+Plug 'tpope/vim-surround'             " Surround text objects
+Plug 'tpope/vim-commentary'           " gc to comment lines
+Plug 'tpope/vim-repeat'               " Repeat plugin commands with .
+Plug 'jiangmiao/auto-pairs'           " Auto-close brackets/quotes
+
+" UI
+Plug 'itchyny/lightline.vim'          " Status bar
+Plug 'frazrepo/vim-rainbow'           " Rainbow parentheses
+Plug 'ap/vim-css-color'               " Color preview in CSS
+Plug 'nathanaelkane/vim-indent-guides'" Visual indent guides
+Plug 'ryanoasis/vim-devicons'         " Icons (load LAST)
+
+" Themes
+Plug 'tomasr/molokai'
+Plug 'dracula/vim',   { 'as': 'dracula' }
+Plug 'sonph/onehalf', { 'rtp': 'vim' }
+
+" Navigation & Motion
+Plug 'easymotion/vim-easymotion'      " Fast cursor movement
+Plug 'christoomey/vim-tmux-navigator' " Tmux/Vim pane navigation
+Plug 'junegunn/fzf',  { 'do': { -> fzf#install() } }  " Fuzzy finder
+Plug 'junegunn/fzf.vim'               " fzf Vim integration
+
+" File Tree
+Plug 'preservim/nerdtree',            { 'on': 'NERDTreeToggle' }
+Plug 'Xuyuanp/nerdtree-git-plugin',   { 'on': 'NERDTreeToggle' }
+Plug 'tiagofumo/vim-nerdtree-syntax-highlight', { 'on': 'NERDTreeToggle' }
+
+" Git
+Plug 'airblade/vim-gitgutter'         " Git diff in gutter
+
+" Language Support
+Plug 'vim-ruby/vim-ruby'
+Plug 'pangloss/vim-javascript'
+Plug 'elzr/vim-json'
+
+call plug#end()
+
+" ============================================================
+" THEME & APPEARANCE
+" ============================================================
+set t_Co=256
+syntax on
+
+try
+  set cursorline
+  colorscheme onehalfdark
+  let g:lightline = {
+    \ 'colorscheme': 'onehalfdark',
+    \ 'active': {
+    \   'left':  [['mode', 'paste'], ['gitbranch', 'readonly', 'filename', 'modified']],
+    \   'right': [['lineinfo'], ['percent'], ['fileformat', 'fileencoding', 'filetype']]
+    \ },
+    \ 'component_function': {
+    \   'gitbranch': 'FugitiveHead'
+    \ }
+    \ }
+
+  if exists('+termguicolors')
+    let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+    let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+    set termguicolors
+  endif
+catch
+  colorscheme delek
+endtry
+
+" ============================================================
+" GENERAL SETTINGS
+" ============================================================
+set encoding=utf-8
+
+" UI
+set number               " Show absolute line number on current line
+set relativenumber       " Relative numbers on other lines
+set noshowmode           " Lightline handles this
+set laststatus=2         " Always show status bar
+set showcmd              " Show partial commands in bottom bar
+set ruler                " Show cursor position
+set cursorline           " Highlight current line
+set signcolumn=yes       " Always show sign column (prevents layout shift)
+set scrolloff=8          " Keep 8 lines visible above/below cursor
+set sidescrolloff=8      " Keep 8 columns visible left/right
+
+" Indentation
+set expandtab            " Use spaces instead of tabs
+set tabstop=2            " Visual width of a tab character
+set shiftwidth=2         " Indent size for << and >>
+set softtabstop=2        " Spaces inserted when pressing Tab
+set autoindent           " Copy indent from current line
+set smartindent          " Smart auto-indenting for code
+
+" Search
+set ignorecase           " Case-insensitive search...
+set smartcase            "   ...unless query has uppercase
+set hlsearch             " Highlight search matches
+set incsearch            " Incremental search as you type
+
+" Brackets
+set showmatch            " Highlight matching bracket
+set mat=2                " Blink duration in tenths of a second
+
+" Clipboard & Mouse
+set clipboard=unnamed    " Use system clipboard
+" set mouse=a            " Uncomment to enable mouse support
+
+" Files
+set nobackup
+set nowritebackup
+set noswapfile
+set autoread             " Auto-reload files changed outside Vim
+
+" Whitespace visualization (toggle with <Leader>l)
+set listchars=eol:¶,tab:»-,trail:·,extends:>,precedes:<,space:␣
+
+" Splits open at the bottom and right (more natural)
+set splitbelow
+set splitright
+
+" ============================================================
+" KEY MAPPINGS
+" ============================================================
+let mapleader = " "      " Space as leader key
+
+" Escape alternative
+inoremap jk <ESC>
+
+" Clear search highlight
+nnoremap <Leader>h :nohlsearch<CR>
+
+" Toggle whitespace visibility
+nnoremap <Leader>l :set list!<CR>
+
+" Quick save / quit
+nmap <Leader>w :w<CR>
+nmap <Leader>q :q!<CR>
+nmap <Leader>x :x<CR>           " Save and quit
+
+" Sudo write
+cmap w!! w !sudo tee % >/dev/null
+
+" EasyMotion
+nmap <Leader>s <Plug>(easymotion-s2)
+
+" Buffer navigation
+nnoremap <Leader>bn :bnext<CR>
+nnoremap <Leader>bp :bprevious<CR>
+nnoremap <Leader>bd :bdelete<CR>
+nnoremap <Leader>bl :buffers<CR>
+
+" Window navigation (redundant with vim-tmux-navigator but useful standalone)
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+
+" FZF
+nnoremap <Leader>f :Files<CR>
+nnoremap <Leader>g :Rg<CR>
+nnoremap <Leader>b :Buffers<CR>
+
+" Move lines up/down in visual mode
+vnoremap J :m '>+1<CR>gv=gv
+vnoremap K :m '<-2<CR>gv=gv
+
+" Keep cursor centered when searching
+nnoremap n nzzzv
+nnoremap N Nzzzv
+
+" ============================================================
+" NERDTREE
+" ============================================================
+map <C-n> :NERDTreeToggle<CR>
+let NERDTreeShowHidden   = 1
+let NERDTreeMinimalUI    = 1
+let NERDTreeQuitOnOpen   = 1
+let NERDTreeIgnore       = ['^node_modules$', '\.git$', '\.DS_Store$']
+let NERDTreeStatusLine   = -1    " Suppress status line in NERDTree window
+
+let NERDTreeGitStatusWithFlags = 1
+let NERDTreeColorMapCustom = {
+  \ 'Staged'    : '#0ee375',
+  \ 'Modified'  : '#d9bf91',
+  \ 'Renamed'   : '#51C9FC',
+  \ 'Untracked' : '#FCE77C',
+  \ 'Unmerged'  : '#FC51E6',
+  \ 'Dirty'     : '#FFBD61',
+  \ 'Clean'     : '#87939A',
+  \ 'Ignored'   : '#808080'
+  \ }
+
+" Close Vim if NERDTree is the only window left
+autocmd BufEnter * if tabpagenr('$') == 1
+  \ && winnr('$') == 1
+  \ && exists('b:NERDTree')
+  \ && b:NERDTree.isTabTree()
+  \| quit |
+\| endif
+
+" ============================================================
+" VIM-INDENT-GUIDES
+" ============================================================
+let g:indent_guides_enable_on_vim_startup = 1
+let g:indent_guides_start_level           = 2
+let g:indent_guides_guide_size            = 1
