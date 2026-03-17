@@ -1,0 +1,60 @@
+#!/usr/bin/env zsh
+alias sudo='sudo '
+alias cd..='cd ..'
+alias ..='cd ..'
+alias ...='cd ../../'
+
+# ----------[ Command aliasses ]------------------------------------------------
+# LazyGit - https://github.com/jesseduffield/lazygit
+cmd_exist lazygit && alias lg=lazygit
+# mise - https://github.com/jdx/mise --
+if cmd_exist mise; then
+  alias ml='mise list'
+  alias mD='mise doctor'
+  alias mO='mise outdated'
+  alias mi='mise install'   # mise i
+  # alias mu='mise use' Installs a tool and adds the version to mise.toml. [aliases: u]
+  alias mU='mini_t self-update && mise self-update --yes --cd ~ && mini_t update && mise up --cd ~'
+  alias mu='mise upgrade --bump -i' # mise up
+  alias mx='mise exec --'   # mise x --
+  alias mr='mise run'       # mise r
+  alias mR='mise uninstall' # mise rm
+fi
+# EZA - https://eza.rocks/ ------------
+if cmd_exist eza; then
+  alias eza='eza --icons --group-directories-first --header'
+  alias l='eza -HlgF --git --color-scale'
+  alias ll='l -aa'
+  alias lt='f(){ eza --tree --git-ignore -L${1:-2}; };f' # --long
+  alias l1='eza -1 --no-quotes --no-symlinks --group-directories-first'
+else # LS Fallback
+  alias ls='ls --color=auto'
+  alias ll='ls -halF'
+  alias lt='tree --gitignore --dirsfirst'
+fi
+# BatCat - https://github.com/sharkdp/bat
+if cmd_exist bat; then
+  export MANPAGER="sh -c 'sed -u -e \"s/\\x1B\[[0-9;]*m//g; s/.\\x08//g\" | bat -p -lman'"
+  alias cat='bat --paging=never --plain'
+  alias cC='bat --plain --color=always'
+  tf() { tail -f "$1" | bat -p --paging=never -l log; } # Tail Follow
+fi
+# NeoVIM - https://neovim.io/ ---------
+if cmd_exist nvim; then
+  export EDITOR=nvim
+  export VISUAL=$EDITOR
+  alias v='nvim'
+  alias v.='nvim .'
+fi
+# Chezmoi - https://www.chezmoi.io/ ---
+if cmd_exist chezmoi; then
+  alias cz="chezmoi"
+  alias cza="chezmoi apply -v"      # Aplica cambios y muestra qué cambió
+  alias cze="chezmoi edit"          # Edita un archivo del source state
+  alias czd="chezmoi diff"          # Compara el estado actual vs el guardado
+  alias czs="chezmoi status"        # Resumen de archivos modificados
+fi
+
+# ----------[ Functions ]------------------------------------------------------
+mkcd() { mkdir -p "$1" && cd "$1"; }
+cx() { cd "$@" && ll; }

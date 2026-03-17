@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# =============================================================================
+# gup: Run git-up on all git repositories in a directory
+# =============================================================================
+# Description: Finds all subdirectories and runs git-up on each one that is
+#              a git repository. Useful for batch updating multiple repos.
+# Usage: gup [directory]
+# Examples:
+#   gup              # Update all repos in current directory
+#   gup ~/projects   # Update all repos in ~/projects
+# =============================================================================
+# set -euo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+require_cmd git
+require_cmd fd
+
+current="$PWD"
+base="${1:-$current}"
+msg "Base directory: ${BLU}$base${RST}"
+
+is_git && err_exit "Base directory should NOT be a git repository"
+
+[[ -d "$base" ]] || err_exit "$base is not a directory"
+cd "$base" || exit 1
+
+# Find all directories (depth 1)
+mapfile -t dirs < <(fd -td --max-depth 1)
+msg "Found ${BLU}${#dirs[@]}${RST} directories."
+
+trap 'echo "Exiting..." && cd "$current"' EXIT SIGINT
+
+# Process each directory
+for dir_name in "${dirs[@]}"; do
+  [[ -z "$dir_name" ]] && continue  # Skip empty entries
+  dir="$base/$dir_name"
+
+  # git-up will handle validation and provide informative messages
+  git-up "$dir"
+done
+
+echo
+msg_ok "Completed updating all repositories"

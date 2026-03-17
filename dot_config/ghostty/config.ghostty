@@ -1,0 +1,13 @@
+# Themes: ghostty +list-themes
+config-file = ?auto/theme.ghostty
+# theme = Argonaut
+
+# Cursor
+cursor-click-to-move = true
+
+# Size
+window-width = 120
+window-height = 30
+
+copy-on-select = clipboard
+app-notifications = no-clipboard-copy
