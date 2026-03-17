@@ -1,0 +1,54 @@
+-- Official docs: https://www.sqlite.org/cli.html
+-- Performance and settings recommended for development (adjust for production)
+
+-- Temporarily suppress output during PRAGMA setup
+.output /dev/null
+
+-- Performance PRAGMAs (DEVELOPMENT ONLY - not recommended for production)
+PRAGMA synchronous = NORMAL;         -- Balance between speed and safety (OFF is too risky)
+PRAGMA foreign_keys = ON;            -- Enforce foreign key constraints (important!)
+PRAGMA journal_mode = WAL;           -- Write-Ahead Logging (better than MEMORY for most cases)
+PRAGMA cache_size = -64000;          -- 64MB cache (negative means KB)
+PRAGMA temp_store = MEMORY;          -- Store temp tables in memory
+PRAGMA mmap_size = 30000000000;      -- Memory-mapped I/O (30GB max)
+PRAGMA page_size = 4096;             -- Standard page size
+
+-- Restore output
+.output stdout
+
+-- Display settings (keep comments above for these 3)
+-- Show column headers in output
+.headers on
+-- Use box-drawing characters (beautiful tables)
+.nullvalue NULL
+-- Show query execution time
+.timer on
+-- Use box-drawing characters (beautiful tables)
+.mode box
+.width auto                          -- Auto-adjust column widths
+
+-- Better prompts
+.prompt "sqlite> " "   ...> "
+
+-- Helpful shortcuts/aliases
+.print '╔══════════════════════════════════════╗'
+.print '║ SQLite DEV Configuration             ║'
+.print '╚══════════════════════════════════════╝'
+.print ''
+.print 'Useful commands:'
+.print '  .tables           - List all tables'
+.print '  .schema [TABLE]   - Show schema for table'
+.print '  .indexes [TABLE]  - Show indexes for table'
+.print '  .dbinfo           - Database information'
+.print '  .mode box         - Box drawing output (default)'
+.print '  .mode markdown    - Markdown table output'
+.print '  .mode csv         - CSV output'
+.print '  .mode json        - JSON output'
+.print '  .mode table       - Table output'
+.print '  .output FILE      - Redirect output to file'
+.print '  .output stdout    - Reset output to terminal'
+.print '  .read FILE        - Execute SQL from file'
+.print '  .dump [TABLE]     - Dump database or table as SQL'
+.print '  .excel            - Open current result in Excel/Numbers'
+.print '  .timer on|off     - Toggle query timing'
+.print ''

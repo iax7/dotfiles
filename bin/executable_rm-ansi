@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+# =============================================================================
+# rm-ansi: Remove ANSI escape sequences from text
+# =============================================================================
+# Description: Strips ANSI escape sequences (colors, formatting, cursor
+#              movement, etc.) from text. Reads from file(s) or stdin.
+# Usage: rm-ansi [file...]   # from file(s)
+#        command | rm-ansi   # from stdin
+# =============================================================================
+
+# Comprehensive pattern that handles most ANSI escape sequences
+SED_EXPR='s/\x1b\[[0-9;]*[mGKHfJABCDsuhlp]//g;s/\x1b\[?[0-9]*[hl]//g'
+
+if [ -t 0 ] && [ $# -gt 0 ]; then
+  # Process files if provided and stdin is a terminal
+  sed "$SED_EXPR" "$@"
+else
+  # Process stdin
+  sed "$SED_EXPR"
+fi

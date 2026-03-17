@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# =============================================================================
+# set-linux-icon: Set Linux folder icon using a PNG file
+# =============================================================================
+# Description: Sets the folder icon in the current directory using the
+#              '.icon.png' file. Supports GNOME (via gio) and KDE/Plasma
+#              (via .directory file).
+# Usage: set-linux-icon
+# =============================================================================
+set -euo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+only_linux
+require_cmd gio
+
+######################################
+# Constants
+######################################
+BASE_NAME='.icon'
+ICON_NAME="$BASE_NAME.png"
+
+######################################
+# Helpers
+######################################
+
+# Sets the folder icon metadata for GNOME using gio.
+# Usage: set_gnome_folder_icon <directory> <icon>
+set_gnome_folder_icon() {
+  local directory="$1"
+  local icon="$2"
+  /usr/bin/gio set "$directory" metadata::custom-icon "$icon"
+}
+
+# Sets the folder icon for KDE/Plasma via a .directory file.
+# Usage: set_kde_folder_icon <directory> <icon>
+set_kde_folder_icon() {
+  local directory="$1"
+  local icon="$2"
+  echo -e "[Desktop Entry]\nIcon=$icon" > "$directory/.directory"
+}
+
+######################################
+# Main
+######################################
+
+[[ ! -f $ICON_NAME ]] && err_exit "$GRE$ICON_NAME$RED file not found."
+
+case "$XDG_CURRENT_DESKTOP" in
+  *GNOME*)
+    set_gnome_folder_icon . "$ICON_NAME"
+    ;;
+  *KDE* | *Plasma*)
+    set_kde_folder_icon . "$ICON_NAME"
+    ;;
+  *)
+    err_exit "Unsupported desktop environment: $XDG_CURRENT_DESKTOP."
+    ;;
+esac

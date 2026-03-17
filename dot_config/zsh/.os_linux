@@ -1,0 +1,48 @@
+# vi: filetype=zsh
+alias open='xdg-open'
+
+# [ ClipBoard ]-----------------------------------------------------------------
+if cmd_exist wl-copy; then # wl-clipboard
+  alias pbcopy='wl-copy'
+  alias pbpaste='wl-paste'
+elif cmd_exist xsel; then
+  alias pbcopy='xsel --clipboard --input'
+  alias pbpaste='xsel --clipboard --output'
+else
+  echo -e "Warn, no clipboard manager installed"
+fi
+# ]-----------------------------------------------------------------------------
+
+# SystemCTL - https://systemd.io/ -------------------------
+# alias s='f(){ [[ -z "$1" ]] && systemctl -t service --no-pager || systemctl -t service --no-pager --plain --legend=false | awk "BEGIN {OFS=\"=\"}/$1/{print \$1,\$2,\$3,\$4}"| column -ts= | grep -E "$1|$"; };f'
+if cmd_exist systemctl; then
+  __msg() { echo -e "\e[31m>>\e[0m Using systemctl as ${1}\e[0m"; }
+  systemctl_aliases() {
+    local _base_cmd="systemctl --user"
+    [[ "$1" == "sudo" ]] && _base_cmd="sudo systemctl"
+    alias   s="${_base_cmd} list-units --no-pager --type=service --plain --legend=false"
+    alias  s.="${_base_cmd} start"
+    alias  s-="${_base_cmd} stop"
+    alias  s,="${_base_cmd} restart"
+    alias  s1="${_base_cmd} enable"
+    alias  s0="${_base_cmd} disable"
+    alias  se="${_base_cmd} show-environment"
+    alias s\?="${_base_cmd} --no-pager status"
+    alias s_="mini_t daemon-reload; ${_base_cmd} daemon-reload"
+    alias st="${_base_cmd} list-timers --all"
+  }
+  systemctl_aliases  # load USER aliases as default
+  sw() { [[ -z $1 ]] && { __msg "\e[34mUser"; systemctl_aliases; } || { __msg "\e[1;31mSystem"; systemctl_aliases sudo; }; }
+fi
+# JournalCTL ----------------------------------------------
+if cmd_exist journalctl; then
+  alias jo='journalctl -b' # actual boot
+  alias jk='sudo dmesg' # kernel
+fi
+# Flatpak -------------------------------------------------
+if cmd_exist flatpak; then
+  # alias f=flatpak this collision with the `f` used in aliases functions
+  alias fl='flatpak list --app'
+  alias fp='flatpak ps'
+  alias fk\!='flatpak kill -v'
+fi

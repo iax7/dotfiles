@@ -1,0 +1,22 @@
+Include config.lan.conf
+Include config.cloud.conf
+
+Host *
+{{- if eq .chezmoi.os "darwin" }}
+  # Don't install brew openssh in order to use these:
+  UseKeychain yes
+  AddKeysToAgent yes
+{{- end }}
+  # Prefer IPv4 (can be changed to 'inet6')
+  AddressFamily inet
+  # Auth
+  IdentityFile ~/.ssh/id_ed25519
+  IdentitiesOnly yes
+  PreferredAuthentications publickey
+  # Connection settings
+  ServerAliveInterval 30
+  ServerAliveCountMax 60
+  # Security settings
+  UpdateHostKeys yes
+  HashKnownHosts yes
+  StrictHostKeyChecking ask

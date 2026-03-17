@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# =============================================================================
+# dirmap: Run a command in each subdirectory of the current directory
+# =============================================================================
+# Description: Iterates over every subdirectory of the current directory and
+#              runs the given command inside each one. Breaks the loop if a
+#              command is cancelled with Ctrl-C (exit code 130).
+# Usage: dirmap <cmd> [args...]
+# Example: dirmap git pull
+# =============================================================================
+set -uo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+[[ $# -eq 0 ]] && err_exit "A command is required. Usage: dirmap <cmd> [args...]"
+
+######################################
+# Main
+######################################
+
+cmd=("$@")
+dirs=(*/)
+total=${#dirs[@]}
+i=0
+
+for dir in "${dirs[@]}"; do
+  i=$((i + 1))
+  msg_title "${BBLK}[$GRE$i$BBLK/$total]${RST} Working on $BLD$CYA$dir"
+  (cd "$dir" && "${cmd[@]}")
+  [[ $? -eq 130 ]] && { msg_info "Cancelled"; break; }
+done
