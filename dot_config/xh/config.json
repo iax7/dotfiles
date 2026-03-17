@@ -1,0 +1,8 @@
+{
+  "default_options": [
+    "--timeout=30",
+    "--style=monokai",
+    "--session=default",
+    "--format-options=json.indent:2,headers.sort:false"
+  ]
+}

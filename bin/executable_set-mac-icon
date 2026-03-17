@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# =============================================================================
+# set-mac-icon: Set macOS folder icon using a PNG file
+# =============================================================================
+# Description: Sets the macOS folder icon in the current directory using
+#              the '.icon.png' file and the fileicon utility.
+# Usage: set-mac-icon
+# =============================================================================
+set -euo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+only_mac
+require_cmd fileicon "Run: brew install fileicon"
+
+######################################
+# Constants
+######################################
+BASE_NAME='.icon'
+ICON_NAME="$BASE_NAME.png"
+
+######################################
+# Main
+######################################
+
+[[ ! -f $ICON_NAME ]] && err_exit "$GRE$ICON_NAME$RED file not found."
+
+fileicon set . "$ICON_NAME"
+msg_ok "Icon set for: $BLU$(pwd)$RST"
