@@ -1,0 +1,157 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# Starship prompt ported from the oh-my-posh "p10k" theme.
+# https://starship.rs/config/
+
+palette = "iax"
+add_newline = false
+continuation_prompt = "[\ue0b6](fg:yellow)[ > ](fg:black bg:yellow)[\ue0b0](fg:yellow) "
+
+format = """
+$aws$azure\
+$os\
+([\ue0b0](fg:dark inverted)$directory)\
+([\ue0b0](fg:dark bg:green)$git_branch)\
+([\ue0b0](fg:green bg:yellow)$git_status)\
+$status\
+"""
+
+right_format = "$ruby$nodejs$golang$python$dotnet$cmd_duration$time"
+
+# -----------------------------------------------------------------------------
+# Modules
+# -----------------------------------------------------------------------------
+
+[os]
+disabled = false
+style = "fg:#eeeeee"
+format = "[ $symbol]($style)"
+
+[os.symbols]
+Linux = "\uf17c "
+Ubuntu = "\uf31b "
+Debian = "\uf306 "
+Arch = "\uf303 "
+Fedora = "\uf30b "
+Macos = "\uf179 "
+Windows = "\ue70f "
+
+[directory]
+# ANSI 39 on ANSI 236, matching the oh-my-posh path segment.
+style = "fg:#00afff bg:dark"
+format = "[ $path ]($style)[$read_only]($read_only_style)"
+truncation_length = 0
+truncate_to_repo = false
+home_symbol = "~"
+
+[directory.substitutions]
+"~/code/personal/" = "\ue601 "
+"~/code/personal" = "\ue601"
+"~/code/oss/" = "\uf113 "
+"~/code/oss" = "\uf113"
+"~/code/edu/" = "\U000f16c9 "
+"~/code/edu" = "\U000f16c9"
+"~/code/" = "\U000f0c8b "
+"~/code" = "\U000f0c8b"
+"~/dev/" = "\ueef4 "
+"~/dev" = "\ueef4"
+"~/" = "\uf015 /"
+"~" = "\uf015 "
+
+[git_branch]
+style = "fg:black bg:green"
+format = "[ $symbol$branch ]($style)"
+symbol = "\uf126 "
+truncation_length = 25
+truncation_symbol = "…"
+
+[git_status]
+style = "fg:black bg:yellow"
+format = "([ $all_status$ahead_behind ]($style))"
+conflicted = "= "
+deleted = "✘ "
+renamed = "» "
+modified = "\uf044 "
+staged = "\uf046 "
+untracked = "? "
+stashed = "\\$"
+ahead = "⇡"
+behind = "⇣"
+diverged = "⇕"
+
+[status]
+disabled = false
+format = "$symbol"
+style = "none"
+# The status segment is a blue (success) or red (failure) powerline block
+# followed by its separator, like the original oh-my-posh theme.
+success_symbol = "[ \uf00c ](fg:white bg:blue)[\ue0b0](fg:blue bg:none) "
+symbol = "[ \uf00d ](fg:white bg:red)[\ue0b0](fg:red bg:none) "
+not_executable_symbol = "[ \uf00d ](fg:white bg:red)[\ue0b0](fg:red bg:none) "
+not_found_symbol = "[ \uf00d ](fg:white bg:red)[\ue0b0](fg:red bg:none) "
+sigint_symbol = "[ \uf00d ](fg:white bg:red)[\ue0b0](fg:red bg:none) "
+signal_symbol = "[ \uf00d ](fg:white bg:red)[\ue0b0](fg:red bg:none) "
+
+# -----------------------------------------------------------------------------
+# Right prompt
+# -----------------------------------------------------------------------------
+
+[ruby]
+symbol = "\ue791"
+style = "fg:#d75f87"
+format = "[ $symbol$version ]($style)"
+
+[nodejs]
+symbol = "\ued0d"
+style = "fg:green"
+format = "[ $symbol$version ]($style)"
+
+[golang]
+symbol = "\ue626"
+style = "fg:blue"
+format = "[ $symbol]($style)"
+
+[python]
+symbol = "\ue235"
+style = "fg:yellow"
+format = "[ $symbol$version ]($style)"
+
+[dotnet]
+symbol = "\U000f0aae"
+style = "fg:blue"
+format = "[ $symbol$version ]($style)"
+
+[cmd_duration]
+min_time = 500
+show_milliseconds = true
+style = "fg:#a8a8a8"
+format = "[\U000f01d9](fg:dark)[ $duration ]($style)[\U000f01d9](fg:dark) "
+
+[time]
+disabled = false
+time_format = "%I:%M:%S %P"
+style = "fg:#5f8787"
+format = "[$time \uf017]($style) "
+
+[aws]
+symbol = "\ue7ad"
+format = "[\ue0b6](fg:orange)[ $symbol$profile(@$region) ](fg:white bg:orange)[\ue0b4](fg:orange) "
+
+[azure]
+disabled = false
+symbol = "\uebd8"
+format = "[\ue0b6](fg:blue)[ $symbol$subscription ](fg:white bg:blue)[\ue0b4](fg:blue) "
+
+# -----------------------------------------------------------------------------
+# Palette
+# -----------------------------------------------------------------------------
+
+[palettes.iax]
+black = "#262B44"
+blue = "#4B95E9"
+dark = "#303030"
+green = "#59C9A5"
+orange = "#F07623"
+red = "#D81E5B"
+white = "#E0DEF4"
+yellow = "#F3AE35"

@@ -1,0 +1,50 @@
+#schema = "https://mise.jdx.dev/schema/mise.json"
+
+[tools]
+bun = "latest"
+engram = "latest"
+gh = "latest"
+go = "latest"
+node = "lts"
+oh-my-pi = { version = "latest", rename_exe = "omp" }
+opencode = { version = "latest", allow_builds = ["@opencode/cli"] }
+pi = "latest"
+postgres = "18"
+python = "latest"
+ruby = "latest"
+usage = "latest"
+uv = "latest"
+
+[settings]
+trusted_config_paths = ['~/dev', '~/code/personal']
+yes = false
+self_update.auto = true
+idiomatic_version_file_enable_tools = ["ruby"]
+minimum_release_age_excludes = ["gh", "opencode", "ruby"]
+minimum_release_age = "6h" # 24 hrs default
+upgrade.prune_after = "6h"
+
+# ==== Tasks ==================================================================
+[tasks.gem]
+alias = "g"
+description = "Upgrade gem and Install gems"
+run = [
+  "gem update --system",
+  "gem install bundler bundler-audit rails rubocop"
+]
+
+[tasks.npm]
+alias = "n"
+description = "Upgrade npm and Install packages"
+run = [
+  "npm install -g npm pnpm",
+  "npm install -g yarn npm-check-updates is-my-node-vulnerable npkill retire portless"
+]
+
+[tasks.pip]
+alias = "p"
+description = "Upgrade pip"
+run = [
+  "pip install --upgrade pip",
+  "pip install --upgrade pipenv pip-audit"
+]

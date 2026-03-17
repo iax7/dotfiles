@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# =============================================================================
+# pkgs: Print the package names for one package manager
+# =============================================================================
+# Description: Reads the app list from ~/.config/pkgs.yaml and prints the names
+#              for the target manager (pacman, aur, dnf, apt, brew, brew-cask, ...).
+#              `name`/`all` is the default name; named managers override it.
+# Usage: pkgs [manager] [-n]
+# Options:
+#   -n, --newline   One package per line (default is a single space-separated line)
+#   -h, --help      Show this help
+# Examples:
+#   pkgs                              # detect the manager installed
+#   pkgs pacman                       # neovim bat fd ... (repo only, no AUR)
+#   pkgs aur | xargs yay -S --needed  # AUR-only packages
+#   pkgs brew-cask | xargs brew install --cask
+#   sudo pacman -S --needed $(pkgs)
+# Config: ~/.config/pkgs.yaml (PKGS_FILE overrides the path)
+# =============================================================================
+set -euo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+PKGS_FILE="${PKGS_FILE:-${XDG_CONFIG_HOME:-$HOME/.config}/pkgs.yaml}"
+STRICT_MANAGERS=' aur brew-cask '
+SEP=' '
+MANAGER=''
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n|--newline) SEP=$'\n'; shift ;;
+    -h|--help)
+      echo "Usage: $(basename "$0") [manager] [-n]"
+      echo "  manager   pacman, dnf, apt, brew, brew-cask, ... (auto-detected if omitted)"
+      echo "  -n        one package per line"
+      exit 0
+      ;;
+    -*) err_exit "Unknown option: $1" ;;
+    *) MANAGER="$1"; shift ;;
+  esac
+done
+
+[[ -f "$PKGS_FILE" ]] || err_exit "Config file not found: $PKGS_FILE"
+require_cmd yq
+
+# Detection by installed binary: no distro table to keep in sync
+if [[ -z "$MANAGER" ]]; then
+  for m in pacman apt dnf zypper apk brew; do
+    cmd_exist "$m" && { MANAGER=$m; break; }
+  done
+  [[ -n "$MANAGER" ]] || err_exit "No package manager detected, pass one: $(basename "$0") <manager>"
+fi
+
+# Each key is a manager: its value is the package name. `name` is an alias of
+# `all` (the default for every normal manager). An app with neither only exists
+# in the managers it names. Strict managers (aur, brew-cask) never inherit.
+if [[ "$STRICT_MANAGERS" == *" $MANAGER "* ]]; then
+  YQ_FILTER='.[] | select(has(strenv(MG))) | .[strenv(MG)]'
+else
+  YQ_FILTER='.[] | (.[strenv(MG)] // .all // .name) | select(. != null and . != "")'
+fi
+
+names=$(MG="$MANAGER" yq -r "$YQ_FILTER" "$PKGS_FILE" | LC_ALL=C sort -u)
+
+[[ -n "$names" ]] || err_exit "No packages for '$MANAGER' in $PKGS_FILE"
+
+if [[ "$SEP" == ' ' ]]; then
+  echo "$names" | paste -sd ' '
+else
+  echo "$names"
+fi

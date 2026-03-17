@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# =============================================================================
+# icon-linux-set: Set Linux folder icon using a PNG file
+# =============================================================================
+# Description: Sets the folder icon in the current directory using the
+#              '.icon.png' file. Supports GNOME (via gio) and KDE/Plasma
+#              (via .directory file).
+# Usage: icon-linux-set
+# =============================================================================
+set -euo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+only_linux
+
+######################################
+# Constants
+######################################
+BASE_NAME='.icon'
+ICON_NAME="$BASE_NAME.png"
+
+######################################
+# Helpers
+######################################
+
+# Sets the folder icon metadata for GNOME using gio.
+# Usage: set_gnome_folder_icon <directory> <icon>
+set_gnome_folder_icon() {
+  local directory="$1"
+  local icon="$2"
+  /usr/bin/gio set "$directory" metadata::custom-icon "$icon"
+}
+
+# Sets the folder icon for KDE/Plasma via a .directory file.
+# KDE only resolves relative icon paths that start with "./" (see KIO's
+# iconFromDirectoryFile()); otherwise it treats the value as a theme icon name.
+# Usage: set_kde_folder_icon <directory> <icon>
+set_kde_folder_icon() {
+  local directory
+  directory="$(cd "$1" && pwd)"  # kwriteconfig needs an absolute --file path
+  local icon="./$2"
+  local kwriteconfig
+
+  if cmd_exist kwriteconfig6; then
+    kwriteconfig=kwriteconfig6
+  elif cmd_exist kwriteconfig5; then
+    kwriteconfig=kwriteconfig5
+  fi
+
+  if [[ -n "$kwriteconfig" ]]; then
+    # Merge into an existing .directory so per-folder view settings are kept.
+    "$kwriteconfig" --file "$directory/.directory" --group "Desktop Entry" --key Icon "$icon"
+  else
+    echo -e "[Desktop Entry]\nIcon=$icon" > "$directory/.directory"
+  fi
+}
+
+######################################
+# Main
+######################################
+
+[[ ! -f $ICON_NAME ]] && err_exit "$GRE$ICON_NAME$RED file not found."
+
+case "$XDG_CURRENT_DESKTOP" in
+  *GNOME*)
+    require_cmd gio
+    set_gnome_folder_icon . "$ICON_NAME"
+    ;;
+  *KDE* | *Plasma*)
+    set_kde_folder_icon . "$ICON_NAME"
+    ;;
+  *)
+    err_exit "Unsupported desktop environment: $XDG_CURRENT_DESKTOP."
+    ;;
+esac
