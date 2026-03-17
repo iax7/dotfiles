@@ -1,0 +1,75 @@
+#!/usr/bin/env zsh
+{{ include ".chezmoiscripts/.common" }}
+
+# pacman -Qqen > backup/pacman_native_list
+# pacman -Qqem > backup/pacman_aur_list
+task "Installing pacman packages..."
+AUR=(appimagelauncher carapace-bin lazyrsync yay-bin brave-bin)
+APPS=(
+    age
+    asciinema
+    atomicparsley
+    atuin
+    bat
+    btop
+    chezmoi
+    cpufetch
+    dconf-editor
+    dialog
+    dog
+    duf
+    dust
+    eza
+    fastfetch
+    fd
+    ffmpegthumbnailer
+    figlet
+    fish
+    fzf
+    ghostty
+    git
+    git-delta
+    go-yq
+    gum
+    hyperfine
+    jujutsu
+    just
+    lazydocker
+    lazygit
+    mpv
+    mtr
+    ncdu
+    neovim
+    podman
+    ponysay
+    progress
+    rate-mirrors
+    reflector
+    ripgrep
+    rsync
+    starship
+    stow
+    syncthing
+    tealdeer
+    thefuck
+    tmux
+    toilet
+    ttf-firacode-nerd
+    ttf-inconsolata-nerd
+    ttf-jetbrains-mono-nerd
+    ttf-meslo-nerd
+    veracrypt
+    vim
+    visual-studio-code-bin
+    vivid
+    wget
+    wl-clipboard
+    xh
+    yazi
+    zellij
+    zoxide
+    zsh
+)
+sudo pacman -Syu --noconfirm
+sudo pacman -S --needed --noconfirm ${APPS[@]}
+ok

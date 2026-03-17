@@ -1,0 +1,48 @@
+[[profile]]
+name = "pi5-data"
+description = ""
+created = 1792812153
+
+[[profile.task]]
+id = "Backup CasaOS"
+label = "Backup CasaOS"
+action = "sync"
+source = "pi5:/DATA"
+dest = "/run/media/iax/Backup"
+created = 1792812153
+
+[profile.task.flags]
+archive = true
+compress = false
+verbose = true
+human = false
+progress = true
+delete = true
+delete_excluded = false
+backup = false
+update = false
+checksum = false
+partial = false
+size_only = false
+existing = false
+ignore_existing = false
+bwlimit_kbps = 0
+hardlinks = false
+acls = false
+xattrs = false
+
+[profile.task.filters]
+excludes = ["Downloads"]
+includes = []
+exclude_from = ""
+include_from = ""
+files_from = ""
+filter = []
+
+[profile.task.ssh]
+port = 22
+keyfile = ""
+extra = ""
+
+[profile.task.advanced]
+raw_args = "--rsync-path='sudo rsync'"

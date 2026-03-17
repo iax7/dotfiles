@@ -1,0 +1,14 @@
+#:schema https://docs.jj-vcs.dev/latest/config-schema.json
+
+[user]
+name = {{ .name | quote }}
+email = {{ .email | quote }}
+
+[signing]
+key = {{ .signingkey | quote }}
+backend = "gpg"
+sign-all = true
+
+[ui]
+default-command = "log"
+pager = "delta"
