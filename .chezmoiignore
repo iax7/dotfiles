@@ -1,0 +1,8 @@
+**/LICENSE
+**/README.md
+AGENTS.md
+docs/
+
+{{ if ne .chezmoi.os "linux" }}
+.hidden
+{{ end }}

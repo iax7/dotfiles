@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+# =============================================================================
+# update: System-wide package updater for multiple OS and package managers
+# =============================================================================
+# Description: Automatically detects OS and updates system packages plus
+#              commonly used tools (brew, mise, flatpak, pipx, etc.)
+# Usage: update
+# Supported: macOS, Ubuntu, Debian, Fedora, Arch Linux
+# =============================================================================
+set -euo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+update_msg() { msg_title "${BBLK}Updating [${CYA}$*${BBLK}]"; }
+mini_t() { sub_title "${BBLK}$*" | indent; }
+
+# =============================================================================
+# Application-Specific Updaters
+# =============================================================================
+upgrade_brew() {
+  update_msg Homebrew
+  mini_t update
+  brew update
+  mini_t upgrade
+  brew upgrade --yes # --greedy
+  mini_t 'clean up'
+  brew cleanup -s
+  brew autoremove
+  # mini_t 'diagnose'
+  # brew doctor
+}
+upgrade_mise() {
+  update_msg Mise
+  mini_t self-update
+  mise self-update --yes --cd ~
+  mini_t update
+  mise up --cd ~
+}
+upgrade_flatpak() {
+  update_msg Flatpak
+  flatpak update -y
+  flatpak uninstall --unused -y
+}
+upgrade_tldr() {
+  update_msg 'TL;DR'
+  tldr --update
+}
+upgrade_pipx() {
+  update_msg pipx
+  pipx upgrade-all
+}
+upgrade_uv() {
+  update_msg uv
+  uv tool upgrade --all
+}
+upgrade_yay() {
+  update_msg yay
+  yay -Sua --noconfirm --answerclean None \
+      --answerdiff None --answeredit None --answerupgrade None
+}
+upgrade_lazyvim() {
+  if [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/nvim/lazy-lock.json" ]]; then
+    update_msg LazyVim Plugins
+    msg_muted "Muting output..." | indent
+    nvim --headless "+Lazy! update" +qa >/dev/null 2>&1
+  fi
+}
+# Run all available app updaters
+upgrade_apps() {
+  cmd_exist brew    && upgrade_brew
+  cmd_exist mise    && upgrade_mise
+  cmd_exist tldr    && upgrade_tldr
+  cmd_exist nvim    && upgrade_lazyvim
+  cmd_exist flatpak && upgrade_flatpak
+  cmd_exist pipx    && upgrade_pipx
+  cmd_exist uv      && upgrade_uv
+  return 0
+}
+
+case $OSTYPE in
+  darwin*)
+    # sudo softwareupdate -i -a
+    upgrade_apps
+    ;;
+  linux*)
+    case "${DISTRO:-unknown}" in
+      arch)
+        update_msg pacman
+        sudo -E pacman -Syu --noconfirm
+        cmd_exist yay && upgrade_yay
+        ;;
+      rhel|rocky|almalinux|fedora)
+        update_msg dnf
+        sudo -E dnf update -y
+        ;;
+      ubuntu|raspbian|debian)
+        update_msg apt
+        sudo apt update
+        mini_t 'Apt Upgrade'
+        sudo DEBIAN_FRONTEND=noninteractive apt upgrade -y
+        mini_t 'Apt Auto remove'
+        sudo apt autoremove --purge -y
+        sudo apt autoclean -y
+        ;;
+      *)
+        err "Not recognized '${YEL}${DISTRO}${RED}' linux distribution."
+        ;;
+    esac
+    upgrade_apps
+    ;;
+  *)
+    err "Not recognized '${YEL}${OSTYPE}${RED}' OS."
+    exit 1
+    ;;
+esac

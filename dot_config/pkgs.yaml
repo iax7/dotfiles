@@ -1,0 +1,103 @@
+---
+# App list for `pkgs`. Each key is a package manager, its value the package name.
+#   name: app      alias of `all`: that name for every normal manager
+#   all: app       same (named manager wins, then all, then name)
+#   manager: app   that manager with a different package name
+# Without name/all the app only exists in the managers you name: no `false` needed.
+# aur and brew-cask do not inherit from name/all; they only list what they declare.
+# brew = formulas, brew-cask = casks, aur = AUR (yay).
+# vim: set ft=yaml ts=2 sw=2:
+
+# --- same name in every manager ---
+- name: age
+- name: asciinema
+- name: atomicparsley
+- name: atuin
+- name: btop
+- name: chezmoi
+- name: cpufetch
+- name: dialog
+- name: dog
+- name: duf
+- name: dust
+- name: eza
+- name: fastfetch
+- name: ffmpegthumbnailer
+- name: figlet
+- name: fish
+- name: fzf
+- name: git
+- name: git-delta
+- name: gum
+- name: hyperfine
+- name: just
+- name: lazydocker
+- name: lazygit
+- name: mpv
+- name: mtr
+- name: ncdu
+- name: neovim
+- name: podman
+- name: progress
+- name: ripgrep
+- name: rsync
+- name: starship
+- name: stow
+- name: syncthing
+- name: thefuck
+- name: tmux
+- name: toilet
+- name: vim
+- name: wget
+- name: xh
+- name: yazi
+- name: zellij
+- name: zoxide
+- name: zsh
+
+#jujutsu
+#tealdeer
+    #ttf-firacode-nerd
+    #ttf-inconsolata-nerd
+    #ttf-jetbrains-mono-nerd
+    #ttf-meslo-nerd
+    #veracrypt
+#visual-studio-code-bin
+
+# --- same name except in a given manager ---
+- name: bat
+  apt: batcat
+- name: fd
+  apt: fd-find
+- name: yq
+  pacman: go-yq
+
+# --- only in some managers ---
+- pacman: base-devel
+  apt: build-essential
+- pacman: ponysay
+  brew: ponysay
+- pacman: vivid
+  brew: vivid
+- pacman: dconf-editor
+  apt: dconf-editor
+  dnf: dconf-editor
+- pacman: wl-clipboard
+  apt: wl-clipboard
+  dnf: wl-clipboard
+- pacman: rate-mirrors
+- pacman: reflector
+- pacman: ghostty
+  brew-cask: ghostty
+
+# --- AUR (yay) ---
+- aur: appimagelauncher
+- aur: yay-bin
+- aur: lazyrsync
+- aur: carapace-bin
+  brew: carapace
+- aur: brave-bin
+  brew-cask: brave-browser
+- aur: oh-my-posh-bin
+  dnf: oh-my-posh
+  brew: oh-my-posh

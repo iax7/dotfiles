@@ -1,0 +1,29 @@
+#!/bin/bash
+# RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
+# Define the config file location (set this as an env var if not default)
+
+# Don't let ripgrep vomit really long lines to my terminal, and show a preview.
+--max-columns=120
+--max-columns-preview
+
+--type-add
+web:*.{html,css,js,jsx,ts,tsx}
+
+# Search hidden files / directories (e.g. dotfiles) by default
+#--hidden
+
+# Using glob patterns to include/exclude files or folders
+--glob=!.git/*
+--glob=!node_modules/*
+--glob=!*.min.js
+--glob=!*.bundle.js
+--glob=!.venv/*
+--glob=!dist/*
+--glob=!build/*
+
+# Set the colors
+--color=auto
+--colors=line:none
+--colors=line:style:bold
+
+--smart-case

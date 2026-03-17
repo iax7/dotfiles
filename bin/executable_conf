@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# =============================================================================
+# conf: Interactive configuration script selector
+# =============================================================================
+# Description: Browse and execute configuration scripts from a directory
+#              using fzf for interactive selection with bat preview.
+# Usage: conf [directory]
+# Default: ~/.iax/conf.d
+# =============================================================================
+set -euo pipefail
+source "$(dirname "$0")/.common" || exit 1
+
+# Directory to search for executables (default is current directory if not provided)
+DIRECTORY="${1:-$DOTFILES_DIR/conf.d}"
+
+# Check if directory exists
+[[ ! -d "$DIRECTORY" ]] && err_exit "Directory does not exist: $DIRECTORY"
+
+# Check required dependencies
+require_cmd fzf 'Please install it before using this script.'
+require_cmd bat 'Please install it for preview functionality.'
+
+title='Config Selector'
+cmd_exist lolcat && title=$(echo "$title" | lolcat -f)
+
+# Find all executable files in the directory and subdirectories
+if [[ "$OSTYPE" == darwin* ]]; then
+  # macOS version
+  EXECUTABLES=$(cd "$DIRECTORY" && find . -type f -perm +111 -print 2>/dev/null | sed 's|^\./||' | sort)
+else
+  # Linux version
+  EXECUTABLES=$(cd "$DIRECTORY" && find . -type f -executable -printf '%P\n' 2>/dev/null | sort)
+fi
+
+# Check if any executables were found
+if [[ -z "$EXECUTABLES" ]]; then
+  err_exit "No executable files found in: $DIRECTORY"
+fi
+
+# Use fzf to select an executable file with preview using bat
+SELECTED=$(echo "$EXECUTABLES" | fzf \
+  --layout="reverse" \
+  --border-label=" $title " \
+  --preview-window=right:70% \
+  --preview "bat --color=always --style=numbers,changes $DIRECTORY/{}" \
+  --prompt="Select a script: " || true)
+
+# Execute selected file
+if [[ -z "$SELECTED" ]]; then
+  msg_info "No file selected"
+  exit 0
+fi
+
+msg "Executing: ${BLU}${SELECTED}${RST}"
+print_line 33
+"$DIRECTORY/$SELECTED"
