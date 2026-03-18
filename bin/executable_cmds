@@ -13,7 +13,7 @@
 set -euo pipefail
 source "$(dirname "$0")/.common" || exit 1
 
-CMDS_FILE="${CMDS_FILE:-${DOTFILES_DIR}/commands.yaml}"
+CMDS_FILE="${CMDS_FILE:-${XDG_CONFIG_HOME}/commands.yaml}"
 CACHE_FILE="/tmp/_cmds_last_selected"
 DRY_RUN=false
 USE_LAST=false

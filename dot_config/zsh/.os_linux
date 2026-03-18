@@ -1,0 +1,14 @@
+#!/usr/bin/env zsh
+alias open='xdg-open'
+
+# [ ClipBoard ]-----------------------------------------------------------------
+if cmd_exist wl-copy; then # wl-clipboard
+  alias pbcopy='wl-copy'
+  alias pbpaste='wl-paste'
+elif cmd_exist xsel; then
+  alias pbcopy='xsel --clipboard --input'
+  alias pbpaste='xsel --clipboard --output'
+else
+  echo -e "Warn, no clipboard manager installed"
+fi
+# ]-----------------------------------------------------------------------------

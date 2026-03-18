@@ -20,23 +20,23 @@ plug "zap-zsh/fzf"
 plug "Aloxaf/fzf-tab"    # or "zap-zsh/completions"
 plug "wintermi/zsh-mise"
 
-cmd_exist vivid && export LS_COLORS="$(vivid generate molokai)" || \
+cmd_exist vivid && export LS_COLORS="$(vivid generate iax-molokai)" || \
   plug "trapd00r/LS_COLORS"
 
 plug "$ZDOTDIR/aliases"
 plug "$ZDOTDIR/globalalias"
-plug "$ZDOTDIR/.iterm2_shell_integration.zsh"
+plug "$ZDOTDIR/os"
 
 # THEME == Oh-My-Posh -- https://ohmyposh.dev/
 export POSH_THEME="$HOME/.config/oh-my-posh/p10k.yaml"
 plug "wintermi/zsh-oh-my-posh"
 
 # ================================= Config Programs ============================
-# ---- Homebrew ----
-export HOMEBREW_NO_ENV_HINTS=1
 # ---- GPG (GNU Privacy Guard) ----
 export GNUPGHOME="$XDG_CONFIG_HOME/gnupg"
 export GPG_TTY=$(tty)
+# ---- RipGrep ----
+export RIPGREP_CONFIG_PATH="$XDG_CONFIG_HOME/ripgrep/config"
 # ---- Zoxide (better cd) with Workarounds ----
 eval_if zoxide init --cmd cd zsh
 # ---- Atuin (better history) ---- # --disable-up-arrow

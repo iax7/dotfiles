@@ -1,13 +1,18 @@
 #!/usr/bin/env zsh
-alias sudo='sudo '
-alias cd..='cd ..'
-alias ..='cd ..'
-alias ...='cd ../../'
+alias sudo='sudo '       # Enable aliases after sudo
+alias ..='cd ..'         # Move up one directory level
+alias ...='cd ../..'     # Move up two directory levels
+alias rm='\rm -Iv'       # rm files Interactive and verbose
 
 # ----------[ Command aliasses ]------------------------------------------------
-# LazyGit - https://github.com/jesseduffield/lazygit
+alias grep='grep --color=auto'
+# LazyGit - https://github.com/jesseduffield/lazygit ------
 cmd_exist lazygit && alias lg=lazygit
-# mise - https://github.com/jdx/mise --
+# LazyDocker - https://github.com/jesseduffield/lazydocker
+cmd_exist lazydocker && alias lzd=lazydocker
+# IP command
+cmd_exist ip && alias ip='ip -c=auto'
+# mise - https://mise.jdx.dev/ ----------------------------
 if cmd_exist mise; then
   alias ml='mise list'
   alias mD='mise doctor'
@@ -18,9 +23,11 @@ if cmd_exist mise; then
   alias mu='mise upgrade --bump -i' # mise up
   alias mx='mise exec --'   # mise x --
   alias mr='mise run'       # mise r
-  alias mR='mise uninstall' # mise rm
+  alias mP='mise prune'
+  alias mR='mise unuse'     # mise rm
+  alias mT='mise trust'
 fi
-# EZA - https://eza.rocks/ ------------
+# EZA - https://eza.rocks/ --------------------------------
 if cmd_exist eza; then
   alias eza='eza --icons --group-directories-first --header'
   alias l='eza -HlgF --git --color-scale'
@@ -32,29 +39,92 @@ else # LS Fallback
   alias ll='ls -halF'
   alias lt='tree --gitignore --dirsfirst'
 fi
-# BatCat - https://github.com/sharkdp/bat
+# App install ---------------------------------------------
+if cmd_exist dnf; then # -- Fedora --
+  alias appi='sudo dnf install -y'
+  alias apps='sudo dnf search'
+  alias appR='sudo dnf remove -y'
+  alias appU='sudo dnf update -y'
+  alias appI='sudo dnf info'
+  alias app\?='sudo dnf provides'
+  alias appl='sudo dnf list installed'
+  alias appC='sudo dnf clean all && sudo dnf autoremove -y'
+elif cmd_exist pacman; then # -- Arch --
+  alias appi='sudo pacman -S --needed --noconfirm'
+  alias apps='sudo pacman -Ss'
+  alias appR='sudo pacman -Rns'
+  alias appU='sudo pacman -Syu --noconfirm'
+  alias appI='pacman -Si'
+  alias app\?='sudo pacman -F'
+  alias appl='pacman -Qe'
+  alias appC='sudo pacman -Sc --noconfirm'
+elif cmd_exist apt; then # -- Debian/Ubuntu --
+  alias appi='sudo apt install -y'
+  alias apps='sudo apt search'
+  alias appR='sudo apt purge -y'
+  alias appU='sudo apt update && sudo apt upgrade -y'
+  alias appI='sudo apt show'
+  alias app\?='sudo apt-file search'
+  alias appl='apt list --installed'
+  alias appC='sudo apt clean && sudo apt autoremove -y'
+elif cmd_exist brew; then # -- MacOS --
+  alias appi='brew install'
+  alias apps='brew search'
+  alias appR='brew uninstall'
+  alias appU='brew update && brew upgrade && brew cleanup && brew autoremove'
+  alias appI='brew info'
+  alias app\?='brew deps'
+  alias appl='brew leaves'  # brew list --verbose
+  alias appC='brew cleanup'
+fi
+# BatCat - https://github.com/sharkdp/bat -----------------
 if cmd_exist bat; then
   export MANPAGER="sh -c 'sed -u -e \"s/\\x1B\[[0-9;]*m//g; s/.\\x08//g\" | bat -p -lman'"
   alias cat='bat --paging=never --plain'
   alias cC='bat --plain --color=always'
   tf() { tail -f "$1" | bat -p --paging=never -l log; } # Tail Follow
 fi
-# NeoVIM - https://neovim.io/ ---------
+# NeoVIM - https://neovim.io/ -----------------------------
 if cmd_exist nvim; then
   export EDITOR=nvim
   export VISUAL=$EDITOR
+  # export MANPAGER='nvim +Man!'
   alias v='nvim'
   alias v.='nvim .'
 fi
-# Chezmoi - https://www.chezmoi.io/ ---
+# Tmux ----------------------------------------------------
+if cmd_exist tmux; then
+  alias tl='tmux ls'
+  alias tk='tmux kill-session -t'
+  alias tn='f(){ [[ -n $1 ]] && tmux new-session -s $1 || tmux new -s default; };f'
+  alias ta='f(){ [[ -n $1 ]] && tmux attach-session -t $1 || tmux attach -t default; };f'
+  # Kill all sesions
+  rm_tmux() {
+    tmux list-sessions | grep -v attached | awk 'BEGIN{FS=":"}{print $1}' | xargs -n 1 tmux kill-session -t || echo No sessions to kill
+  }
+fi
+
+# Chezmoi - https://www.chezmoi.io/ -----------------------
 if cmd_exist chezmoi; then
-  alias cz="chezmoi"
-  alias cza="chezmoi apply -v"      # Aplica cambios y muestra qué cambió
-  alias cze="chezmoi edit"          # Edita un archivo del source state
-  alias czd="chezmoi diff"          # Compara el estado actual vs el guardado
-  alias czs="chezmoi status"        # Resumen de archivos modificados
+  alias cz='chezmoi'
+  alias cza='chezmoi add -v'
+  alias cze='chezmoi edit'
+  alias czd='chezmoi diff'
+  alias czs='chezmoi status'
+  alias czr='chezmoi re-add'
+  alias czA='chezmoi apply -v'
+  alias czD='chezmoi doctor'
+  alias czM='chezmoi merge-all'
 fi
 
 # ----------[ Functions ]------------------------------------------------------
 mkcd() { mkdir -p "$1" && cd "$1"; }
 cx() { cd "$@" && ll; }
+
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	command yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
+	rm -f -- "$tmp"
+}

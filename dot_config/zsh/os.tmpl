@@ -1,0 +1,7 @@
+{{- $currentDir := dir .chezmoi.sourceFile -}}
+
+{{- if eq .chezmoi.os "darwin" -}}
+{{ include (joinPath $currentDir ".os_macos") }}
+{{- else if eq .chezmoi.os "linux" -}}
+{{ include (joinPath $currentDir ".os_linux") }}
+{{- end -}}

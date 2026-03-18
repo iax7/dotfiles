@@ -1,0 +1,32 @@
+#!/usr/bin/env zsh
+
+# ---- Homebrew ----
+export HOMEBREW_NO_ENV_HINTS=1
+# ---- EZA ----
+# ~/Library/Application Support/eza by default
+export EZA_CONFIG_DIR=$XDG_CONFIG_HOME/eza
+# ---- TLRC ----
+export TLRC_CONFIG=$XDG_CONFIG_HOME/tlrc/config.toml # MacOS needs this
+
+plug "$ZDOTDIR/.iterm2_shell_integration.zsh"
+
+# macOS aliasses
+alias flush='dscacheutil -flushcache'
+alias sb='brew services list'
+alias sb.='brew services start'
+alias sb-='brew services stop'
+alias s='sudo launchctl list'
+alias s.='sudo launchctl start'
+alias s-='sudo launchctl stop'
+alias s,='sudo launchctl kickstart -k'
+alias se='sudo launchctl enable'
+alias sd='sudo launchctl disable'
+alias s\?='echo Not Implemented'
+
+alias n='lsof -Pi -n' # 'lsof -PiTCP -sTCP:LISTEN'
+alias flush="sudo purge && sudo memory_pressure -l critical"
+
+# Empty Trash
+trashe() {
+  osascript -e 'tell application "Finder" to empty trash'
+}

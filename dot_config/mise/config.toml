@@ -2,6 +2,7 @@
 
 # you can set these with `mise use -g`
 [tools]
+bun = "latest"
 node = "lts"
 python = "latest"
 ruby = "latest"
@@ -12,13 +13,8 @@ trusted_config_paths = ['~/dev', '~/projects']
 yes = false # set to true to automatically answer yes to all prompts
 idiomatic_version_file_enable_tools = ["ruby"]
 
-[tasks.npm]
-alias = "n"
-description = "Upgrade npm and Install packages"
-run = [
-  "npm install -g npm",
-  "npm install -g yarn npm-check-updates is-my-node-vulnerable npkill retire portless"
-]
+[settings.ruby]
+compile = false
 
 [tasks.gems]
 alias = "g"
@@ -26,6 +22,14 @@ description = "Upgrade gem and Install gems"
 run = [
   "gem update --system",
   "gem install bundler bundler-audit rails rubocop"
+]
+
+[tasks.npm]
+alias = "n"
+description = "Upgrade npm and Install packages"
+run = [
+  "npm install -g npm pnpm",
+  "npm install -g yarn npm-check-updates is-my-node-vulnerable npkill retire portless"
 ]
 
 [tasks.pip]
