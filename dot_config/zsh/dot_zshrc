@@ -27,6 +27,7 @@ cmd_exist vivid && export LS_COLORS="$(vivid generate iax-molokai)" || \
 plug "$ZDOTDIR/aliases"
 plug "$ZDOTDIR/globalalias"
 plug "$ZDOTDIR/os"
+plug "$ZDOTDIR/secrets"
 
 # THEME == Oh-My-Posh -- https://ohmyposh.dev/
 eval_if oh-my-posh init zsh --config "$XDG_CONFIG_HOME/oh-my-posh/p10k.yaml"
