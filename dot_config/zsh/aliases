@@ -121,6 +121,17 @@ fi
 mkcd() { mkdir -p "$1" && cd "$1"; }
 cx() { cd "$@" && ll; }
 
+path() {
+  local i=1
+  for dir in $path; do
+    [[ -d "$dir" ]] && printf "%3d ${GRE}%s${RST}\n" $i "$dir" || \
+      printf "%3d ${RED}%s${RST} (missing)\n" $i "$dir"
+    ((i++))
+  done
+}
+path+() { local p="${1:-$PWD}"; [[ ! -d "$p" ]] && { echo "Error, $p not found."; return 1; }; (( $path[(Ie)$p] )) && echo "$p already exists." || { path=("$p" $path); echo "$p added."; }; }
+path-() { local p="${1:?Error: parameter missing}"; path=("${(@)path:#$p}"); echo "Removed: $p"; }
+
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
 	command yazi "$@" --cwd-file="$tmp"
