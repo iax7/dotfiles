@@ -4,6 +4,11 @@ AGENTS.md
 docs/
 favicon.png
 
+{{ if ne .chezmoi.os "darwin" }}
+.chezmoiscripts/darwin/*
+{{ end }}
+
 {{ if ne .chezmoi.os "linux" }}
 .hidden
+.chezmoiscripts/linux/*
 {{ end }}
