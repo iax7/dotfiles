@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+# Modified date {{ (stat (joinPath .chezmoi.homeDir ".vimrc")).modTime }}
+{{ include ".chezmoiscripts/.common" }}
+
+task Setting up Vim...
+vim +PlugInstall +qall
+ok
