@@ -1,0 +1,13 @@
+#!/usr/bin/env zsh
+# Modified date {{ with stat (joinPath .chezmoi.homeDir ".vimrc") }}{{ .modTime }}{{ else }}not installed yet{{ end }}
+{{ include ".chezmoiscripts/.common" }}
+
+# Vim may be missing
+if ! command -v vim >/dev/null 2>&1; then
+    echo "⏭  skipping vim plugins: vim not installed"
+    exit 0
+fi
+
+task Setting up Vim...
+vim +PlugInstall +qall
+ok
