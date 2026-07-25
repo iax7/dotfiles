@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+# Modified date {{ (stat (joinPath .chezmoi.homeDir ".config/nvim")).modTime }}
+{{ include ".chezmoiscripts/.common" }}
+
+task Setting up Neovim with Lazy.nvim...
+nvim --headless "+Lazy! sync" +qa
+ok
