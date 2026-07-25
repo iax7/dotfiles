@@ -1,0 +1,79 @@
+schema_version = 4
+
+[app_settings]
+launch_at_login = false
+check_for_updates = true
+auto_install_updates = false
+update_prompt_seen = true
+show_in_menu_bar = true
+auto_download_assets = true
+asset_source = "automatic"
+thumbwheel_sensitivity = 14
+appearance = "system"
+capture_mouse_events = true
+
+[devices."direct:046d:b042:serial:2547za27y6x8"]
+invert_scroll = true
+
+[devices."direct:046d:b042:serial:2547za27y6x8".identity]
+display_name = "MX Master 4"
+codename = "MX Master 4"
+kind = "mouse"
+
+[devices."direct:046d:b042:serial:2547za27y6x8".identity.model_info]
+entity_count = 4
+unit_id = [
+    0,
+    0,
+    0,
+    0,
+]
+model_ids = [
+    45122,
+    0,
+    0,
+]
+extended_model_id = 0
+
+[devices."direct:046d:b042:serial:2547za27y6x8".identity.model_info.transports]
+usb = false
+equad = false
+btle = true
+bluetooth = false
+
+[devices."direct:046d:b042:serial:2547za27y6x8".identity.capabilities]
+buttons = true
+pointer = true
+lighting = false
+scroll_inversion = true
+hires_wheel = true
+thumbwheel = true
+haptic_feedback = true
+haptic_panel = true
+
+[devices."direct:046d:b042:serial:2547za27y6x8".bindings]
+MiddleClick= "MiddleClick"
+Back= "BrowserBack"
+
+[devices."direct:046d:b042:serial:2547za27y6x8".bindings.GestureButton]
+Up = "MissionControl"
+Down = "ShowDesktop"
+Left = "PrevTab"
+Right = "NextTab"
+Click = "AppExpose"
+
+[devices."direct:046d:b042:serial:2547za27y6x8".disabled_gestures.MiddleClick]
+Up = "MissionControl"
+Down = "ShowDesktop"
+Left = "PrevTab"
+Right = "NextTab"
+Click = "MiddleClick"
+
+[devices."direct:046d:b042:serial:2547za27y6x8".disabled_gestures.Back]
+Up = "MissionControl"
+Down = "ShowDesktop"
+Left = "PrevTab"
+Right = "NextTab"
+Click = "BrowserBack"
+
+[keyboard]
