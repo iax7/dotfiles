@@ -68,8 +68,6 @@ brew "zoxide"
 cask "font-jetbrains-mono-nerd-font"
 # Terminal emulator that uses platform-native UI and GPU acceleration
 cask "ghostty"
-# Utility to hide menu bar items
-cask "hiddenbar"
 # Control your tools with a few keystrokes
 cask "raycast"
 # Multiplayer code editor

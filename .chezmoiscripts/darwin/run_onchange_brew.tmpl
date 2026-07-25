@@ -1,0 +1,11 @@
+#!/usr/bin/env zsh
+# MacOS build version: {{ output "sw_vers" "--buildVersion" }}
+{{ include ".chezmoiscripts/.common" }}
+
+task "Installing Xcode Command Line Tools..."
+xcode-select --install
+ok
+
+task "Installing Homebrew packages..."
+brew bundle --file={{ joinPath .chezmoi.sourceDir (dir .chezmoi.sourceFile) ".Brewfile" }}
+ok
