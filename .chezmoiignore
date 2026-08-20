@@ -1,6 +1,7 @@
 **/LICENSE
 **/README.md
 AGENTS.md
+CLAUDE.md
 docs/
 
 {{ if ne .chezmoi.os "darwin" }}
