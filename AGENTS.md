@@ -2,9 +2,9 @@
 
 This is a **chezmoi dotfiles repository** for managing personal system configuration
 across macOS and Linux. It contains shell scripts (Bash/Zsh), Neovim config (Lua),
-and tool configuration files (YAML/TOML/JSON/INI). Templating is used sparingly —
-only for OS dispatching (`.tmpl` files). Most cross-platform logic is handled at runtime
-via bash/zsh conditionals.
+and tool configuration files (YAML/TOML/JSON/INI). Templating (`.tmpl` files) is used
+for OS dispatching and for `.chezmoiignore`/`.chezmoi.yaml.tmpl`. Most cross-platform
+logic is handled at runtime via bash/zsh conditionals.
 
 ## Project Structure
 
@@ -12,7 +12,7 @@ via bash/zsh conditionals.
 bin/                    # Utility shell scripts (deployed to ~/bin/)
   dot_common            # Shared bash library sourced by all scripts
   executable_*          # Executable scripts (chezmoi prefix convention)
-dot_config/             # Maps to ~/.config/
+dot_config/             # Maps to ~/.config/, includes (non-exhaustive):
   git/                  # Git config (config, aliases, ignore via [include])
   nvim/                 # Neovim/LazyVim config (Lua) + stylua.toml
   zsh/                  # Zsh config (.zshrc, .zprofile, aliases, globalalias, os.tmpl)
@@ -21,12 +21,20 @@ dot_config/             # Maps to ~/.config/
   mise/                 # mise tool version manager config
   oh-my-posh/           # Shell prompt theme
   xh/                   # xh HTTP client config
+  atuin/, bat/, eza/, fish/, jj/, pgcli/, ripgrep/, sqlite3/, vivid/  # other tool configs
+dot_local/bin/          # Maps to ~/.local/bin/
+private_dot_ssh/        # Maps to ~/.ssh/ (chezmoi "private" = 0600 perms)
+.chezmoiscripts/        # run_onchange_*.tmpl scripts, split into darwin/ and linux/
+.chezmoiignore          # OS-conditional ignores (templated)
+.chezmoi.yaml.tmpl      # chezmoi config: age encryption, delta --side-by-side diff pager
 docs/                   # macOS tips
-dot_zshenv              # Maps to ~/.zshenv (XDG dirs, ZDOTDIR, PATH, LANG)
+symlink_dot_zshenv      # Symlinked to ~/.zshenv (XDG dirs, ZDOTDIR, PATH, LANG)
 ```
 
-Chezmoi naming: `dot_` maps to `.` in target, `executable_` marks files executable.
-No templating (`.tmpl`), `.chezmoiignore`, or `.chezmoiexternal` files are used.
+Chezmoi naming: `dot_` maps to `.` in target, `executable_` marks files executable,
+`private_` sets 0600 perms, `symlink_` creates a symlink target, `run_onchange_` scripts
+in `.chezmoiscripts/` re-run when their content changes. `.chezmoiexternal` and
+`.chezmoiroot` are not used. Encrypted files use `age` (see `.chezmoi.yaml.tmpl`).
 
 ## Build / Apply / Lint Commands
 
