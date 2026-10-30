@@ -17,11 +17,17 @@ cmd_exist ip && alias ip='ip -c=auto'
 if cmd_exist mise; then
   alias ml='mise ls'
   alias mD='mise doctor'
-  alias mU='mini_t self-update && mise self-update --yes --cd ~ && mini_t update && mise up --prune --cd ~'
   alias mi='mise install'   # mise i
-  alias mb='mise upgrade --bump -i' # mise up
+  alias mb='mise upgrade --bump -i' # bump past config range (interactive)
   alias mx='mise exec --'   # mise x --
   alias mr='mise run'       # mise r
+  # mU: self-update (only if this install supports it) + update, then upgrade + prune
+  mU() {
+    mini_t self-update
+    mise self-update -y --cd ~ || print -P "%F{yellow}mise: self-update not available for this install, skipping%f"
+    mini_t update
+    mise up --prune --cd ~
+  }
 fi
 # EZA - https://eza.rocks/ --------------------------------
 if cmd_exist eza; then

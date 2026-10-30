@@ -31,7 +31,7 @@ upgrade_brew() {
 upgrade_mise() {
   update_msg Mise
   mini_t self-update
-  mise self-update --yes --cd ~
+  mise self-update --yes --cd ~ || msg_skip 'Mise self-update not available for this install'
   mini_t update
   mise up --cd ~
 }

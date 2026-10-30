@@ -20,11 +20,17 @@ if type -q mise
   alias mO 'mise outdated'
   alias mi 'mise install'   # mise i
   # alias mu 'mise use' Installs a tool and adds the version to mise.toml. [aliases: u]
-  alias mU 'mini_t self-update && mise self-update --yes --cd ~ && mini_t update && mise up --cd ~'
-  alias mu 'mise upgrade --bump -i' # mise up
+  alias mu 'mise upgrade --bump -i' # bump past config range (interactive)
   alias mx 'mise exec --'   # mise x --
   alias mr 'mise run'       # mise r
   alias mR 'mise uninstall' # mise rm
+  # mU: self-update (only if this install supports it) + update, then upgrade + prune
+  function mU -d "Update mise, refresh tools and upgrade"
+      mini_t self-update
+      mise self-update --yes --cd ~; or echo "mise: self-update not available for this install, skipping"
+      mini_t update
+      mise up --prune --cd ~
+  end
 end
 # EZA - https://eza.rocks/ ------------
 if type -q eza
