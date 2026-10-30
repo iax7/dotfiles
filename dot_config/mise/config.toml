@@ -3,6 +3,7 @@
 # you can set these with `mise use -g`
 [tools]
 bun = "latest"
+engram = "latest"
 gh = "latest"
 go = "latest"
 node = "lts"
